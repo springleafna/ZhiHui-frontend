@@ -106,9 +106,9 @@
     </div>
 
     <!-- 页脚 -->
-    <footer class="footer">
+    <header class="header">
         <p>© 2025 知汇 - 个人学习管理平台</p>
-    </footer>
+    </header>
 </div>
 </template>
 
@@ -505,7 +505,7 @@ body {
 }
 
 /* 页脚 */
-.footer {
+.header {
     text-align: center;
     padding: var(--spacing-unit) 0;
     color: var(--text-light);
