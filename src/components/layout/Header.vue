@@ -8,13 +8,13 @@
             </div>
 
             <!-- 导航链接 -->
-            <ul class="nav-items">
+            <!-- <ul class="nav-items">
                 <li v-for="item in navItems" :key="item.id" class="nav-item" :class="{ active: activeNav === item.id }"
                     @click="activeNav = item.id">
                     <component :is="item.icon" class="item-icon" />
                     <span class="item-label">{{ item.label }}</span>
                 </li>
-            </ul>
+            </ul> -->
         </div>
 
         <!-- 右侧功能区 -->
@@ -31,6 +31,19 @@
                 <SearchIcon class="search-icon" />
             </div>
         </div>
+
+        <!-- 通知、用户头像 -->
+        <div class="nav-section">
+            <!-- 通知 -->
+            <div class="notice">
+                <NoticeIcon class="notice-icon" />  <!-- 通知图标 -->
+            </div>
+
+            <!-- 用户头像 -->
+            <div class="avatar">
+                <AvatarIcon class="avatar-icon" />  <!-- 用户头像图标 -->
+            </div>
+        </div>
     </nav>
 </template>
 
@@ -42,6 +55,8 @@ import AiIcon from '@/assets/icon-ai.svg'
 import CommunityIcon from '@/assets/icon-community.svg'
 import ClockIcon from '@/assets/icon-clock.svg'
 import SearchIcon from '@/assets/icon-search.svg'
+import AvatarIcon from '@/assets/icon-avatar.svg'
+import NoticeIcon from '@/assets/icon-notice.svg'
 
 // 响应式状态
 const activeNav = ref('learning')
@@ -90,7 +105,7 @@ onBeforeUnmount(() => {
 .nav-section {
     display: flex;
     align-items: center;
-    gap: 32px;
+    gap: 20px;
 }
 
 /* Logo样式 */
@@ -129,15 +144,6 @@ onBeforeUnmount(() => {
     cursor: pointer;
     transition: all 0.2s ease;
     color: #606266;
-
-    &:hover {
-        background: #f5f9ff;
-    }
-
-    &.active {
-        background: #e0f2fe;
-        color: #2a6ebb;
-    }
 }
 
 .item-icon {
@@ -180,17 +186,11 @@ onBeforeUnmount(() => {
     border-radius: 16px;
     font-size: 13px;
     transition: all 0.2s ease;
-
-    &:focus {
-        border-color: #2a6ebb;
-        outline: none;
-        box-shadow: 0 0 4px rgba(42, 110, 187, 0.2);
-    }
 }
 
 .search-icon {
     position: absolute;
-    right: 12px;
+    right: 4px;
     top: 50%;
     transform: translateY(-50%);
     width: 16px;

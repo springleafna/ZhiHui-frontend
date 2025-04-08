@@ -1,18 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
+import Profile from '@/views/Profile.vue'
+import PriorityMatrix from '@/components/task/PriorityMatrix.vue'
+
 import Header from '@/components/layout/Header.vue'
 import SidePanel from '@/components/layout/SidePanel.vue'
-import Profile from '@/views/Profile.vue'
-
 
 const router = createRouter({
     history: createWebHistory(),
     routes: [
-        {
-            path: '/',
-            name: 'Home',
-            component: Home
-        },
         {
             path: '/header',
             name: 'Header',
@@ -24,11 +20,21 @@ const router = createRouter({
             component: SidePanel
         },
         {
+            path: '/',
+            name: 'Home',
+            component: Home
+        },
+        {
             path: '/profile',
             name: 'Profile',
             component: Profile
         },
-
+        {
+            path: '/priority',
+            name: 'Priority',
+            component: PriorityMatrix
+        },
+        
     ]
 })
 

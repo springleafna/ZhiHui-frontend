@@ -1,17 +1,21 @@
 <template>
     <div class="side-panel" :class="{ 'collapsed': isCollapsed, 'expanded': !isCollapsed }"
         @mouseenter="isHovered = true" @mouseleave="isHovered = false">
-        <button class="collapse-btn" @click="toggleCollapse">
-                <component :is="isCollapsed ? ExpandIcon : CollapseIcon" />
-        </button>
+        <div class="panel-top">
+            <button class="collapse-btn" @click="toggleCollapse">
+                <component :is="isCollapsed ? ExpandIcon : CollapseIcon" class="collapse-icon" />
+            </button>
+        </div>
         <!-- 导航菜单 -->
         <nav class="nav-section">
             <ul>
                 <li v-for="item in navItems" :key="item.id" :class="{ 'active': activeItem === item.id }"
                     @click="activeItem = item.id">
-                    <component :is="item.icon" class="nav-icon" />
+                    <div class="nav-icon-container">
+                        <component :is="item.icon" class="nav-icon" />
+                    </div>
                     <transition name="slide">
-                        <span v-show="!isCollapsed">{{ item.label }}</span>
+                        <span v-show="!isCollapsed" class="nav-label">{{ item.label }}</span>
                     </transition>
                 </li>
             </ul>
@@ -56,11 +60,18 @@ const toggleCollapse = () => {
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
     transition: var(--transition);
     position: relative;
+    z-index: 100;
 }
 
 /* 收缩状态 */
 .collapsed {
     width: 74px;
+}
+
+/* 面板顶部区域 */
+.panel-top {
+    height: 30px;
+    padding: 10px;
 }
 
 /* 控制区样式 */
@@ -90,34 +101,43 @@ const toggleCollapse = () => {
 
 .collapse-btn {
     position: absolute;
-    top: 24px;
-    right: -12px;
+    top: 12px;
+    left: 12px;
+    width: 40px;
+    height: 40px;
     background: white;
     border: 1px solid #e0e0e0;
     border-radius: 50%;
-    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     transition: var(--transition);
+    z-index: 101;
+}
+
+.collapse-icon {
+    width: 14px;
+    height: 14px;
 }
 
 /* 导航菜单 */
-
 .nav-section ul {
-    padding: 12px;
+    padding: 0 12px;
     list-style: none;
+    margin: 0;
 }
 
 .nav-section li {
     margin-top: 15px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px;
     border-radius: 8px;
     cursor: pointer;
     transition: var(--transition);
     color: #606266;
+    padding: 14px;
 }
 
 .nav-section li:hover {
@@ -129,10 +149,24 @@ const toggleCollapse = () => {
     color: var(--primary-color);
 }
 
-.nav-icon {
+.nav-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 24px;
     height: 24px;
+    margin-right: 12px;
     flex-shrink: 0;
+}
+
+.nav-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.nav-label {
+    font-size: 14px;
+    white-space: nowrap;
 }
 
 /* 过渡动画 */
