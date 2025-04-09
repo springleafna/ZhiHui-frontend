@@ -28,7 +28,9 @@
             <!-- 搜索框 -->
             <div class="search-box">
                 <input type="text" placeholder="搜索笔记、任务..." class="search-input" />
-                <SearchIcon class="search-icon" />
+                <div class="search-icon-wrapper">
+                    <SearchIcon class="search-icon" />
+                </div>
             </div>
         </div>
 
@@ -173,6 +175,9 @@ onBeforeUnmount(() => {
 .time-icon {
     width: 16px;
     height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .time-text {
@@ -183,22 +188,45 @@ onBeforeUnmount(() => {
 .search-box {
     position: relative;
     width: 220px;
+    display: flex;
+    align-items: center;
 }
 
 .search-input {
     width: 100%;
-    padding: 8px 32px 8px 12px;
+    padding: 8px 36px 8px 12px;
     border: 1px solid #dcdfe6;
     border-radius: 16px;
     font-size: 13px;
     transition: all 0.2s ease;
+    outline: none;
+}
+
+.search-input:focus {
+    border-color: #2a6ebb;
+    box-shadow: 0 0 0 2px rgba(42, 110, 187, 0.1);
+}
+
+.search-icon-wrapper {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.search-icon-wrapper:hover {
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
 .search-icon {
-    position: absolute;
-    right: 4px;
-    top: 50%;
-    transform: translateY(-50%);
     width: 16px;
     height: 16px;
     color: #909399;

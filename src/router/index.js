@@ -4,6 +4,7 @@ import Profile from '@/views/Profile.vue'
 import PriorityMatrix from '@/components/task/PriorityMatrix.vue'
 import Community from '@/views/Community.vue'
 import Dashboard from '@/views/Dashboard.vue'
+import ArticleDetail from '@/views/ArticleDetail.vue'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -35,6 +36,12 @@ const router = createRouter({
             path: '/dashboard',
             name: 'Dashboard',
             component: Dashboard
+        },
+        {
+            path: '/article/:id',
+            name: 'ArticleDetail',
+            component: ArticleDetail,
+            props: true
         }
     ]
 })

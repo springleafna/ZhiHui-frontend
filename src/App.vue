@@ -37,7 +37,34 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  overflow: hidden;
+  overflow: hidden; /* 防止body滚动 */
+}
+
+/* 隐藏所有滚动条，仅在需要处显示自定义滚动条 */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+/* 只在主要内容区域显示自定义滚动条 */
+.main-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.main-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+  /* 调整底部内边距，确保滚动条在底部可见 */
+  margin-bottom: 10px;
+}
+
+.main-content::-webkit-scrollbar-thumb {
+  background: #bbb;
+  border-radius: 10px;
+}
+
+.main-content::-webkit-scrollbar-thumb:hover {
+  background: #999;
 }
 </style>
 
@@ -57,11 +84,16 @@ html, body {
 
 .main-content {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: auto; /* 只在主内容区域允许滚动 */
   background-color: #f5f7fa;
   margin-left: 74px; /* 设置为收缩状态的SidePanel宽度 */
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   height: 100%;
+  /* 确保内容底部有足够的空间 */
+  padding-bottom: 50px;
+  /* 设置合适的内边距 */
+  padding-top: 20px;
+  position: relative;
 }
 
 .main-content.sidebar-expanded {

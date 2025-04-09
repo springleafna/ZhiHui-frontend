@@ -69,69 +69,31 @@
 
       <!-- 文章列表 -->
       <div class="article-list">
-        <!-- 文章项目1 -->
-        <div class="article-item">
+        <!-- 使用v-for循环渲染文章列表 -->
+        <div v-for="article in articles" :key="article.id" class="article-item" @click="goToArticleDetail(article.id)">
           <div class="author-info">
             <img src="@/assets/avatar.png" alt="作者头像" class="author-avatar" />
-            <div class="author-name">李大勇</div>
-            <div class="post-time">2 小时前</div>
+            <div class="author-name">{{ article.author }}</div>
+            <div class="post-time">{{ article.time }}</div>
           </div>
           <div class="article-content">
-            <h3 class="article-title">Python 数据分析必备技巧总结</h3>
-            <p class="article-summary">在数据分析项目中，经常会遇到数据清洗和预处理的问题。这里分享一些实用的 Pandas 技巧，帮助大家提高数据处理效率。</p>
+            <h3 class="article-title">{{ article.title }}</h3>
+            <p class="article-summary">{{ article.summary }}</p>
             <div class="article-tags">
-              <div class="tag">Python</div>
-              <div class="tag">数据分析</div>
-              <div class="tag">编程技巧</div>
+              <div v-for="(tag, index) in article.tags" :key="index" class="tag">{{ tag }}</div>
             </div>
             <div class="article-actions">
               <div class="action">
                 <i class="iconfont icon-like"></i>
-                <span>128</span>
+                <span>{{ article.likes }}</span>
               </div>
               <div class="action">
                 <i class="iconfont icon-comment"></i>
-                <span>32</span>
+                <span>{{ article.comments }}</span>
               </div>
               <div class="action">
                 <i class="iconfont icon-bookmark"></i>
-                <span>45</span>
-              </div>
-              <div class="action share">
-                <i class="iconfont icon-share"></i>
-                <span>分享</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 文章项目2 -->
-        <div class="article-item">
-          <div class="author-info">
-            <img src="@/assets/avatar.png" alt="作者头像" class="author-avatar" />
-            <div class="author-name">王思琪</div>
-            <div class="post-time">4 小时前</div>
-          </div>
-          <div class="article-content">
-            <h3 class="article-title">如何提升学习效率？分享我的知识管理方法</h3>
-            <p class="article-summary">良好的知识管理系统是提升学习效率的关键。我使用的是双链笔记方法，配合以下工具和技巧...</p>
-            <div class="article-tags">
-              <div class="tag">效率提升</div>
-              <div class="tag">知识管理</div>
-              <div class="tag">学习方法</div>
-            </div>
-            <div class="article-actions">
-              <div class="action">
-                <i class="iconfont icon-like"></i>
-                <span>256</span>
-              </div>
-              <div class="action">
-                <i class="iconfont icon-comment"></i>
-                <span>48</span>
-              </div>
-              <div class="action">
-                <i class="iconfont icon-bookmark"></i>
-                <span>89</span>
+                <span>{{ article.bookmarks }}</span>
               </div>
               <div class="action share">
                 <i class="iconfont icon-share"></i>
@@ -231,14 +193,56 @@
 
 <script setup>
 // 这里可以导入需要的组件和方法
-// import { ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 // import { fetchArticles, fetchHotTopics } from '@/api/community'
 
-// 页面加载时获取数据的逻辑可以在这里实现
-// const articles = ref([])
-// const hotTopics = ref([])
-// const realtimeUpdates = ref([])
+// 初始化路由
+const router = useRouter()
 
+// 模拟文章数据
+const articles = ref([
+  {
+    id: '1',
+    title: 'Python 数据分析必备技巧总结',
+    summary: '在数据分析项目中，经常会遇到数据清洗和预处理的问题。这里分享一些实用的 Pandas 技巧，帮助大家提高数据处理效率。',
+    author: '李大勇',
+    time: '2 小时前',
+    tags: ['Python', '数据分析', '编程技巧'],
+    likes: 128,
+    comments: 32,
+    bookmarks: 45
+  },
+  {
+    id: '2',
+    title: '如何提升学习效率？分享我的知识管理方法',
+    summary: '良好的知识管理系统是提升学习效率的关键。我使用的是双链笔记方法，配合以下工具和技巧...',
+    author: '王思琪',
+    time: '4 小时前',
+    tags: ['效率提升', '知识管理', '学习方法'],
+    likes: 256,
+    comments: 48,
+    bookmarks: 89
+  },
+  {
+    id: '3',
+    title: '深度学习基础：神经网络架构与优化策略',
+    summary: '神经网络是深度学习的核心基础，其架构设计直接影响模型的学习能力和性能表现。本文深入探讨神经网络的基本构成要素。',
+    author: '张明远',
+    time: '昨天',
+    tags: ['深度学习', '人工智能', '神经网络'],
+    likes: 312,
+    comments: 56,
+    bookmarks: 127
+  }
+])
+
+// 跳转到文章详情页
+const goToArticleDetail = (articleId) => {
+  router.push({ name: 'ArticleDetail', params: { id: articleId } })
+}
+
+// 页面加载时获取数据的逻辑可以在这里实现
 // onMounted(async () => {
 //   // 获取文章列表
 //   // articles.value = await fetchArticles()
@@ -264,14 +268,19 @@
   position: sticky;
   top: 20px;
   max-height: calc(100vh - 120px);
-  overflow-y: auto;
 }
 
 .user-profile {
   background-color: #fff;
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: border-radius 0.3s ease, box-shadow 0.3s ease;
+}
+
+.user-profile:hover {
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .avatar {
@@ -371,8 +380,10 @@
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
-  overflow-y: auto;
-  max-height: calc(100vh - 120px);
+  overflow: visible;
+  height: auto;
+  padding-bottom: 80px;
+  margin-bottom: 40px;
 }
 
 .nav-tabs {
@@ -412,14 +423,38 @@
 .tag {
   background-color: #f5f5f5;
   border-radius: 16px;
-  padding: 5px 12px;
-  font-size: 13px;
+  padding: 3px 10px;
+  font-size: 12px;
   cursor: pointer;
 }
 
+/* 文章列表 */
+.article-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding-bottom: 30px;
+}
+
 .article-item {
-  padding: 20px 0;
-  border-bottom: 1px solid #eee;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, border-radius 0.3s;
+  border: 1px solid #f0f0f0;
+  overflow: hidden;
+  max-height: 300px;
+}
+
+.article-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+}
+
+.article-item:last-child {
+  margin-bottom: 40px;
 }
 
 .author-info {
@@ -451,26 +486,36 @@
   margin-bottom: 8px;
 }
 
+.article-content {
+  overflow: hidden;
+}
+
 .article-summary {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 10px;
   color: #666;
-  margin-bottom: 15px;
   line-height: 1.5;
 }
 
 .article-tags {
   display: flex;
-  gap: 8px;
-  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
 .article-actions {
   display: flex;
-  gap: 15px;
+  gap: 12px;
 }
 
 .action {
   display: flex;
   align-items: center;
+  font-size: 13px;
   color: #666;
   cursor: pointer;
 }
@@ -490,7 +535,6 @@
   position: sticky;
   top: 20px;
   max-height: calc(100vh - 120px);
-  overflow-y: auto;
 }
 
 .realtime-updates, .hot-topics {
@@ -499,6 +543,12 @@
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
+  transition: border-radius 0.3s ease, box-shadow 0.3s ease;
+}
+
+.realtime-updates:hover, .hot-topics:hover {
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .section-header {
@@ -557,6 +607,12 @@
   align-items: center;
   padding: 10px 0;
   border-bottom: 1px solid #eee;
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.topic-item:hover {
+  transform: translateX(5px);
 }
 
 .topic-title {
