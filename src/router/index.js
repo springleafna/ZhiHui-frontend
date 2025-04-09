@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import Profile from '@/views/Profile.vue'
 import PriorityMatrix from '@/components/task/PriorityMatrix.vue'
+import Community from '@/views/Community.vue'
 
 import Header from '@/components/layout/Header.vue'
 import SidePanel from '@/components/layout/SidePanel.vue'
@@ -34,7 +35,11 @@ const router = createRouter({
             name: 'Priority',
             component: PriorityMatrix
         },
-        
+        {
+            path: '/community',
+            name: 'Community',
+            component: Community
+        } 
     ]
 })
 

@@ -98,8 +98,14 @@ onBeforeUnmount(() => {
     align-items: center;
     padding: 12px 24px;
     background: #ffffff;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
-    border-top: 1px solid #e4e7ed;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    z-index: 1000;
+    box-sizing: border-box;
 }
 
 .nav-section {

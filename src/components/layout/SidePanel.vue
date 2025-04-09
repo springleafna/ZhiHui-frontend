@@ -24,17 +24,30 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject, watch } from 'vue'
 import StudyIcon from '@/assets/icon-learning.svg'
 import AiIcon from '@/assets/icon-ai.svg'
 import BulbIcon from '@/assets/icon-community.svg'
 import CollapseIcon from '@/assets/icon-collapse.svg'
 import ExpandIcon from '@/assets/icon-expand.svg'
 
+// 定义emit
+const emit = defineEmits(['toggle-collapse'])
+
 // 响应式状态
-const isCollapsed = ref(false)
+const isCollapsed = ref(true)
 const isHovered = ref(false)
 const activeItem = ref('study')
+
+// 尝试从父组件获取状态
+const isSidePanelCollapsed = inject('isSidePanelCollapsed', null)
+
+// 如果父组件提供了状态，则使用父组件的状态
+if (isSidePanelCollapsed !== null) {
+    watch(isSidePanelCollapsed, (newValue) => {
+        isCollapsed.value = newValue
+    })
+}
 
 // 导航项配置
 const navItems = [
@@ -45,6 +58,8 @@ const navItems = [
 
 const toggleCollapse = () => {
     isCollapsed.value = !isCollapsed.value
+    // 向父组件发送状态变化
+    emit('toggle-collapse', isCollapsed.value)
 }
 </script>
 
@@ -55,17 +70,26 @@ const toggleCollapse = () => {
     --active-bg: #E0EFFF;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     width: 240px;
-    height: 100vh;
+    height: 100%;
     background: white;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
     transition: var(--transition);
-    position: relative;
+    position: fixed;
+    left: 0;
+    top: 60px; /* Header高度为60px */
+    bottom: 0;
     z-index: 100;
+    overflow-y: auto;
 }
 
 /* 收缩状态 */
 .collapsed {
     width: 74px;
+}
+
+/* 展开状态 */
+.expanded {
+    width: 240px;
 }
 
 /* 面板顶部区域 */
