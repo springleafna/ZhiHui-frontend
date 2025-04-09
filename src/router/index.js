@@ -3,27 +3,18 @@ import Home from '../views/Home.vue'
 import Profile from '@/views/Profile.vue'
 import PriorityMatrix from '@/components/task/PriorityMatrix.vue'
 import Community from '@/views/Community.vue'
-
-import Header from '@/components/layout/Header.vue'
-import SidePanel from '@/components/layout/SidePanel.vue'
+import Dashboard from '@/views/Dashboard.vue'
 
 const router = createRouter({
     history: createWebHistory(),
     routes: [
         {
-            path: '/header',
-            name: 'Header',
-            component: Header
-        },
-        {
-            path: '/side',
-            name: 'Side',
-            component: SidePanel
-        },
-        {
             path: '/',
             name: 'Home',
-            component: Home
+            component: Home,
+            meta: {
+                hideLayout: true // 隐藏Header和SidePanel
+            }
         },
         {
             path: '/profile',
@@ -39,7 +30,12 @@ const router = createRouter({
             path: '/community',
             name: 'Community',
             component: Community
-        } 
+        },
+        {
+            path: '/dashboard',
+            name: 'Dashboard',
+            component: Dashboard
+        }
     ]
 })
 

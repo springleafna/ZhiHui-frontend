@@ -10,7 +10,7 @@
         <nav class="nav-section">
             <ul>
                 <li v-for="item in navItems" :key="item.id" :class="{ 'active': activeItem === item.id }"
-                    @click="activeItem = item.id">
+                    @click="navigateTo(item)">
                     <div class="nav-icon-container">
                         <component :is="item.icon" class="nav-icon" />
                     </div>
@@ -30,12 +30,13 @@ import AiIcon from '@/assets/icon-ai.svg'
 import BulbIcon from '@/assets/icon-community.svg'
 import CollapseIcon from '@/assets/icon-collapse.svg'
 import ExpandIcon from '@/assets/icon-expand.svg'
+import { useRouter } from 'vue-router'
 
 // 定义emit
 const emit = defineEmits(['toggle-collapse'])
 
 // 响应式状态
-const isCollapsed = ref(true)
+const isCollapsed = ref(false)
 const isHovered = ref(false)
 const activeItem = ref('study')
 
@@ -51,15 +52,24 @@ if (isSidePanelCollapsed !== null) {
 
 // 导航项配置
 const navItems = [
-    { id: 'study', label: '我的学习舱', icon: StudyIcon },
-    { id: 'ai', label: 'AI实验室', icon: AiIcon },
-    { id: 'community', label: '灵感社区', icon: BulbIcon }
+    { id: 'study', label: '我的学习舱', icon: StudyIcon, route: '/dashboard' },
+    { id: 'ai', label: 'AI实验室', icon: AiIcon, route: '/ai-lab' },
+    { id: 'community', label: '灵感社区', icon: BulbIcon, route: '/community' }
 ]
+
+const router = useRouter()
 
 const toggleCollapse = () => {
     isCollapsed.value = !isCollapsed.value
     // 向父组件发送状态变化
     emit('toggle-collapse', isCollapsed.value)
+}
+
+const navigateTo = (item) => {
+    activeItem.value = item.id
+    if (item.route) {
+        router.push(item.route)
+    }
 }
 </script>
 

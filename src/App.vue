@@ -2,9 +2,12 @@
 import Header from './components/layout/Header.vue'
 import SidePanel from './components/layout/SidePanel.vue'
 import { ref, provide } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
 
 // 创建一个响应式状态来跟踪侧边栏是否折叠
-const isSidePanelCollapsed = ref(true)
+const isSidePanelCollapsed = ref(false)
 
 // 提供该状态给子组件
 provide('isSidePanelCollapsed', isSidePanelCollapsed)
@@ -16,10 +19,13 @@ const handleSidePanelToggle = (collapsed) => {
 </script>
 
 <template>
-  <Header />
-  <div class="app-container">
-    <SidePanel @toggle-collapse="handleSidePanelToggle" />
-    <main class="main-content" :class="{ 'sidebar-expanded': !isSidePanelCollapsed }">
+  <Header v-if="!route.meta.hideLayout" />
+  <div class="app-container" :class="{ 'no-layout': route.meta.hideLayout }">
+    <SidePanel v-if="!route.meta.hideLayout" @toggle-collapse="handleSidePanelToggle" />
+    <main class="main-content" :class="{ 
+      'sidebar-expanded': !isSidePanelCollapsed && !route.meta.hideLayout,
+      'no-margin': route.meta.hideLayout 
+    }">
       <router-view></router-view>
     </main>
   </div>
@@ -44,6 +50,11 @@ html, body {
   margin-top: 60px; /* 为固定的Header留出空间 */
 }
 
+.app-container.no-layout {
+  height: 100vh;
+  margin-top: 0;
+}
+
 .main-content {
   flex: 1;
   overflow-y: auto;
@@ -55,5 +66,9 @@ html, body {
 
 .main-content.sidebar-expanded {
   margin-left: 240px; /* 设置为展开状态的SidePanel宽度 */
+}
+
+.main-content.no-margin {
+  margin-left: 0;
 }
 </style>
