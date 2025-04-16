@@ -6,7 +6,9 @@
       <div class="dashboard-card quick-note">
         <div class="card-header">
           <h2>快速笔记</h2>
-          <div class="icon-btn"><i class="iconfont icon-mic"></i></div>
+          <div class="voice-btn">
+            <VoiceIcon class="voice-icon" />
+          </div>
         </div>
         <div class="card-content">
           <textarea placeholder="记录灵感..." class="note-input"></textarea>
@@ -282,6 +284,7 @@
 </template>
 
 <script setup>
+import VoiceIcon from '@/assets/icon-voice.svg'
 // 可以添加业务逻辑
 </script>
 
@@ -293,6 +296,7 @@
   padding: 20px;
   max-width: 1400px;
   margin: 0 auto;
+  background-color: #f8faff;
 }
 
 .dashboard-row {
@@ -346,20 +350,83 @@
 }
 
 /* 快速笔记 */
+.quick-note {
+  overflow: visible;
+}
+
+.quick-note .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 0;
+  border-bottom: none;
+  height: 48px;
+}
+
+.quick-note .card-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1;
+}
+
+.voice-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background-color: #f0f9ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.voice-btn:hover {
+  background-color: #e6f4ff;
+}
+
+.voice-icon {
+  width: 28px;
+  height: 28px;
+  color: #1890ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.voice-icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+}
+
+.quick-note .card-content {
+  padding: 12px 20px 20px;
+}
+
 .note-input {
   width: 100%;
-  height: 100px;
-  padding: 12px;
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
+  height: 120px;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  background-color: #f5f7fa;
   resize: none;
   font-size: 14px;
+  color: #333;
   outline: none;
-  transition: border-color 0.3s;
+  transition: background-color 0.3s;
+  box-sizing: border-box;
+  margin-top: 8px;
+}
+
+.note-input::placeholder {
+  color: #999;
 }
 
 .note-input:focus {
-  border-color: #1890ff;
+  background-color: #f0f2f5;
 }
 
 /* 今日学习 */
@@ -702,5 +769,14 @@
   .dashboard-card {
     min-width: 100%;
   }
+}
+
+/* 修改整体背景色 */
+:deep(body) {
+  background-color: #f8faff;
+}
+
+.app-container {
+  background-color: #f8faff;
 }
 </style> 

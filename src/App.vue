@@ -75,6 +75,7 @@ html, body {
   width: 100%;
   position: relative;
   margin-top: 60px; /* 为固定的Header留出空间 */
+  background-color: #f5f9ff;
 }
 
 .app-container.no-layout {
@@ -85,7 +86,7 @@ html, body {
 .main-content {
   flex: 1;
   overflow-y: auto; /* 只在主内容区域允许滚动 */
-  background-color: #f5f7fa;
+  background-color: #f5f9ff;
   margin-left: 74px; /* 设置为收缩状态的SidePanel宽度 */
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   height: 100%;
@@ -102,5 +103,14 @@ html, body {
 
 .main-content.no-margin {
   margin-left: 0;
+}
+
+/* 添加全局背景色 */
+:root {
+  background-color: #f5f9ff;
+}
+
+body {
+  background-color: #f5f9ff;
 }
 </style>

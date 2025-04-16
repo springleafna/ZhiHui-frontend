@@ -28,6 +28,7 @@ import { ref, inject, watch } from 'vue'
 import StudyIcon from '@/assets/icon-learning.svg'
 import AiIcon from '@/assets/icon-ai.svg'
 import BulbIcon from '@/assets/icon-community.svg'
+import NoteIcon from '@/assets/icon-note.svg'
 import CollapseIcon from '@/assets/icon-collapse.svg'
 import ExpandIcon from '@/assets/icon-expand.svg'
 import { useRouter } from 'vue-router'
@@ -53,6 +54,7 @@ if (isSidePanelCollapsed !== null) {
 // 导航项配置
 const navItems = [
     { id: 'study', label: '我的学习舱', icon: StudyIcon, route: '/dashboard' },
+    { id: 'notes', label: '我的笔记', icon: NoteIcon, route: '/notes' },
     { id: 'ai', label: 'AI实验室', icon: AiIcon, route: '/ai-lab' },
     { id: 'community', label: '灵感社区', icon: BulbIcon, route: '/community' }
 ]
