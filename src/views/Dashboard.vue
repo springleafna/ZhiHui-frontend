@@ -388,12 +388,7 @@ import VoiceIcon from '@/assets/icon-voice.svg'
 }
 
 .voice-icon {
-  width: 28px;
-  height: 28px;
-  color: #1890ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  
 }
 
 .voice-icon :deep(svg) {

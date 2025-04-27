@@ -127,13 +127,6 @@ const goToRegister = () => {
     margin-bottom: 24px;
 }
 
-.logo-icon {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-}
-
 .logo-text {
     font-size: 24px;
     font-weight: 600;
@@ -267,13 +260,8 @@ const goToRegister = () => {
     border-radius: 50%;
     border: 1px solid #dcdfe6;
     background: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
-    padding: 0;
-    box-sizing: border-box;
 }
 
 .social-button :deep(svg) {

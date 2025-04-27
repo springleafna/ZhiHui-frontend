@@ -3,17 +3,12 @@
     <!-- 导航栏 -->
     <nav class="navbar">
         <div class="logo">
-            <div class="logo-icon">📚</div>
+            <LogoIcon class="logo-icon" />
             <span>知汇</span>
         </div>
-        <div class="nav-links">
-            <a href="#" class="nav-link active">我的学习舱</a>
-            <a href="#" class="nav-link">AI实验室</a>
-            <a href="#" class="nav-link">灵感社区</a>
-        </div>
-        <div class="search-bar">
-            🔍
-            <input type="text" placeholder="搜索知识或提问..." />
+        <div class="auth-buttons">
+            <button class="login-btn" @click="goToLogin">登录</button>
+            <button class="register-btn" @click="goToRegister">注册</button>
         </div>
     </nav>
 
@@ -114,6 +109,18 @@
 
 <script setup>
 import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import LogoIcon from '@/assets/logo-brain.svg'
+
+const router = useRouter()
+
+const goToLogin = () => {
+    router.push('/login')
+}
+
+const goToRegister = () => {
+    router.push('/register')
+}
 
 onMounted(() => {
     // 滚动动画触发
@@ -196,6 +203,7 @@ body {
     z-index: 100;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 0 var(--spacing-unit);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -209,73 +217,42 @@ body {
 }
 
 .logo-icon {
-    width: 32px;
-    height: 32px;
     margin-right: 12px;
-    background: var(--glass-effect);
-    border-radius: 8px;
+    margin-bottom: 5px;
+}
+
+.auth-buttons {
     display: flex;
+    gap: 12px;
     align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.nav-links {
-    display: flex;
-    margin: 0 auto;
-}
-
-.nav-link {
-    padding: 8px 16px;
-    margin: 0 8px;
-    border-radius: var(--border-radius);
-    transition: var(--transition);
+.login-btn, .register-btn {
+    padding: 8px 20px;
+    border-radius: 20px;
     font-weight: 500;
-    position: relative;
-}
-
-.nav-link:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.nav-link.active {
-    color: var(--primary-color);
-}
-
-.nav-link.active::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 20px;
-    height: 3px;
-    background: var(--primary-color);
-    border-radius: 3px;
-}
-
-.search-bar {
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 24px;
-    padding: 8px 16px;
-    width: 240px;
+    cursor: pointer;
     transition: var(--transition);
 }
 
-.search-bar:focus-within {
-    width: 280px;
-    background: rgba(255, 255, 255, 0.3);
+.login-btn {
+    color: var(--primary-color);
+    background: transparent;
+    border: 1px solid var(--primary-color);
 }
 
-.search-bar input {
-    background: transparent;
+.login-btn:hover {
+    background: var(--primary-light);
+}
+
+.register-btn {
+    color: white;
+    background: var(--primary-color);
     border: none;
-    outline: none;
-    width: 100%;
-    color: var(--text-color);
-    padding-left: 8px;
+}
+
+.register-btn:hover {
+    opacity: 0.9;
 }
 
 /* 主内容区 */
@@ -532,18 +509,6 @@ body {
         height: 60px;
     }
 
-    .nav-links {
-        display: none;
-    }
-
-    .search-bar {
-        width: 180px;
-    }
-
-    .search-bar:focus-within {
-        width: 220px;
-    }
-
     .main-content {
         margin-top: 80px;
     }
@@ -559,5 +524,9 @@ body {
     .feature-grid {
         grid-template-columns: 1fr;
     }
+}
+
+.logo-icon {
+    margin-top:6px;
 }
 </style>

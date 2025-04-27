@@ -123,11 +123,6 @@ onBeforeUnmount(() => {
     gap: 8px;
 }
 
-.logo-icon {
-    width: 32px;
-    height: 32px;
-}
-
 .logo-text {
     font-size: 18px;
     font-weight: 600;
@@ -173,11 +168,7 @@ onBeforeUnmount(() => {
 }
 
 .time-icon {
-    width: 16px;
-    height: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    margin-top: 2px;
 }
 
 .time-text {
