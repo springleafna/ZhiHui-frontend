@@ -429,9 +429,7 @@ const onCalendarSelect = (date) => {
 
 // AI建议
 const aiSuggestions = ref([
-  '建议将"产品周会"提前15分钟开始，以便充分准备',
-  '下午的任务较多，建议适当休息',
-  '根据往期数据，建议将高优先级任务安排在上午'
+  '建议将"产品周会"提前15分钟开始，以便充分准备'
 ])
 
 // 获取AI建议
@@ -516,20 +514,24 @@ const disabledEndTime = (now) => {
 <style scoped>
 .daily-plan {
   padding: 24px;
-  background: #f0f2f5;
-  min-height: 100%;
+  background: #f5f9ff;
+  min-height: calc(100vh - 48px);
+  overflow-x: hidden;
 }
 
 .plan-container {
   display: flex;
   gap: 24px;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
 .plan-card {
   flex: 1;
-  min-width: 0; /* 防止flex子项溢出 */
+  min-width: 0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .header {
@@ -638,12 +640,18 @@ const disabledEndTime = (now) => {
 }
 
 .sidebar {
-  width: 300px;
+  width: 320px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .sidebar-card {
-  margin-bottom: 24px;
+  margin-bottom: 0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .sidebar-card h3 {

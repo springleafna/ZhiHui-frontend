@@ -1,403 +1,545 @@
 <template>
-    <div class="plan-container">
-        <!-- 顶部分类标签栏 -->
-        <div class="category-header">
-            <div class="category-item active">
-                <span class="category-text">课程</span>
-                <span class="category-count">2</span>
-            </div>
-            <div class="category-item">
-                <span class="category-text">阅读</span>
-                <span class="category-count">1</span>
-            </div>
-            <div class="category-item">
-                <span class="category-text">项目</span>
-                <span class="category-count">0</span>
-            </div>
-            <button class="add-category-btn">
-                <span>+</span>
-                新建分组
-            </button>
-        </div>
-
-        <!-- 视图切换和操作栏 -->
-        <div class="operation-bar">
-            <div class="left-section">
-                <div class="view-switch">
-                    <button 
-                        :class="['switch-btn', viewMode === 'grid' ? 'active' : '']" 
-                        @click="viewMode = 'grid'"
-                    >
-                        <i class="el-icon-grid"></i>
-                    </button>
-                    <button 
-                        :class="['switch-btn', viewMode === 'list' ? 'active' : '']" 
-                        @click="viewMode = 'list'"
-                    >
-                        <i class="el-icon-menu"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="right-section">
-                <button class="filter-btn">
-                    <i class="el-icon-date"></i>
-                    按截止日期
-                </button>
-                <button class="filter-btn">
-                    <i class="el-icon-rank"></i>
-                    按优先级
-                </button>
-                <button class="filter-btn">
-                    <i class="el-icon-finished"></i>
-                    按完成状态
-                </button>
-            </div>
-        </div>
-
-        <!-- 计划列表区域 -->
-        <div :class="['plans-wrapper', viewMode]">
-            <template v-if="viewMode === 'grid'">
-                <div class="plan-grid">
-                    <div v-for="plan in plans" :key="plan.id" class="plan-item">
-                        <div class="plan-content">
-                            <div class="plan-status" :class="plan.status">
-                                <i v-if="plan.status === 'urgent'" class="el-icon-warning"></i>
-                                <i v-else-if="plan.status === 'completed'" class="el-icon-check"></i>
-                            </div>
-                            <div class="plan-info">
-                                <h3 class="plan-title">{{ plan.title }}</h3>
-                                <div class="plan-progress">
-                                    <div class="progress-bar">
-                                        <div class="progress" :style="{ width: plan.progress + '%' }"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="plan-date">{{ plan.date }}</div>
-                        </div>
-                    </div>
-                    <div class="add-plan-card">
-                        <button class="add-plan-btn">
-                            <span>+</span>
-                            添加计划
-                        </button>
-                    </div>
-                </div>
+    <div class="long-term-plan">
+        <!-- 任务组标签栏 -->
+        <a-tabs 
+            v-model:activeKey="activeTaskGroup" 
+            type="card"
+            class="custom-tabs"
+        >
+            <template #rightExtra>
+                <a-button type="primary" @click="showAddGroupModal">
+                    <template #icon><PlusOutlined /></template>
+                    添加任务组
+                </a-button>
             </template>
-
-            <template v-else>
-                <div class="plan-list">
-                    <div v-for="plan in plans" :key="plan.id" class="plan-row">
-                        <div class="plan-checkbox">
-                            <input type="checkbox" :checked="plan.status === 'completed'">
-                        </div>
-                        <div class="plan-info">
-                            <div class="plan-title">{{ plan.title }}</div>
-                            <div class="plan-progress">
-                                <div class="progress-bar">
-                                    <div class="progress" :style="{ width: plan.progress + '%' }"></div>
+            <a-tab-pane v-for="group in taskGroups" :key="group.key" :tab="group.title">
+                <template #tab>
+                    <span class="tab-title">
+                        {{ group.title }}
+                        <DeleteOutlined 
+                            v-if="taskGroups.length > 1"
+                            class="delete-icon"
+                            @click.stop="confirmDeleteGroup(group)" 
+                        />
+                    </span>
+                </template>
+                <!-- 任务类别列表 -->
+                <div class="task-categories">
+                    <a-collapse 
+                        v-model:activeKey="activeCategories"
+                        class="custom-collapse"
+                    >
+                        <a-collapse-panel 
+                            v-for="category in group.categories" 
+                            :key="category.key" 
+                        >
+                            <template #header>
+                                <div class="category-header">
+                                    <span>{{ category.title }}</span>
+                                    <a-space>
+                                        <a-button type="link" @click.stop="showAddTaskModal(category)">
+                                            <PlusOutlined />添加任务
+                                        </a-button>
+                                        <DeleteOutlined 
+                                            class="delete-icon"
+                                            @click.stop="confirmDeleteCategory(group, category)" 
+                                        />
+                                    </a-space>
                                 </div>
+                            </template>
+                            <!-- 任务列表 -->
+                            <div class="task-list">
+                                <a-list :dataSource="category.tasks" class="custom-list">
+                                    <template #renderItem="{ item }">
+                                        <a-list-item class="task-list-item">
+                                            <a-list-item-meta>
+                                                <template #title>
+                                                    <div class="task-item">
+                                                        <a-checkbox 
+                                                            v-model:checked="item.completed"
+                                                            :class="{ 'task-completed': item.completed }"
+                                                        >
+                                                            {{ item.title }}
+                                                        </a-checkbox>
+                                                        <a-space>
+                                                            <a-tag :color="getPriorityColor(item.priority)">
+                                                                {{ getPriorityText(item.priority) }}
+                                                            </a-tag>
+                                                            <a-button 
+                                                                type="text" 
+                                                                danger
+                                                                @click="confirmDeleteTask(category, item)"
+                                                            >
+                                                                <DeleteOutlined />
+                                                            </a-button>
+                                                        </a-space>
+                                                    </div>
+                                                </template>
+                                                <template #description>
+                                                    <div class="task-meta">
+                                                        <span class="due-date">
+                                                            <CalendarOutlined /> {{ item.dueDate }}
+                                                        </span>
+                                                        <a-progress 
+                                                            :percent="item.progress" 
+                                                            size="small"
+                                                            :status="getProgressStatus(item)"
+                                                        />
+                                                    </div>
+                                                </template>
+                                            </a-list-item-meta>
+                                        </a-list-item>
+                                    </template>
+                                </a-list>
                             </div>
-                        </div>
-                        <div class="plan-meta">
-                            <span class="plan-date">{{ plan.date }}</span>
-                            <span class="plan-category">{{ plan.category }}</span>
-                        </div>
-                        <div class="plan-actions">
-                            <i class="el-icon-more"></i>
-                        </div>
-                    </div>
-                    <div class="add-plan-row">
-                        <button class="add-plan-btn">
-                            <span>+</span>
-                            添加计划
-                        </button>
-                    </div>
+                        </a-collapse-panel>
+                    </a-collapse>
+                    <!-- 添加任务类别按钮 -->
+                    <a-button 
+                        type="dashed" 
+                        block 
+                        @click="showAddCategoryModal" 
+                        class="add-category-btn"
+                    >
+                        <PlusOutlined /> 添加任务类别
+                    </a-button>
                 </div>
-            </template>
-        </div>
+            </a-tab-pane>
+        </a-tabs>
+
+        <!-- 添加任务组弹窗 -->
+        <a-modal
+            v-model:visible="groupModalVisible"
+            title="添加任务组"
+            @ok="handleAddGroup"
+            @cancel="groupModalVisible = false"
+        >
+            <a-form :model="newGroup" layout="vertical">
+                <a-form-item label="任务组名称" required>
+                    <a-input v-model:value="newGroup.title" placeholder="请输入任务组名称" />
+                </a-form-item>
+            </a-form>
+        </a-modal>
+
+        <!-- 添加任务类别弹窗 -->
+        <a-modal
+            v-model:visible="categoryModalVisible"
+            title="添加任务类别"
+            @ok="handleAddCategory"
+            @cancel="categoryModalVisible = false"
+        >
+            <a-form :model="newCategory" layout="vertical">
+                <a-form-item label="类别名称" required>
+                    <a-input v-model:value="newCategory.title" placeholder="请输入类别名称" />
+                </a-form-item>
+            </a-form>
+        </a-modal>
+
+        <!-- 添加任务弹窗 -->
+        <a-modal
+            v-model:visible="taskModalVisible"
+            title="添加任务"
+            @ok="handleAddTask"
+            @cancel="taskModalVisible = false"
+        >
+            <a-form :model="newTask" layout="vertical">
+                <a-form-item label="任务名称">
+                    <a-input v-model:value="newTask.title" />
+                </a-form-item>
+                <a-form-item label="优先级">
+                    <a-select v-model:value="newTask.priority">
+                        <a-select-option value="high">高</a-select-option>
+                        <a-select-option value="medium">中</a-select-option>
+                        <a-select-option value="low">低</a-select-option>
+                    </a-select>
+                </a-form-item>
+                <a-form-item label="截止日期">
+                    <a-date-picker v-model:value="newTask.dueDate" style="width: 100%" />
+                </a-form-item>
+            </a-form>
+        </a-modal>
+
+        <!-- 删除确认弹窗 -->
+        <a-modal
+            v-model:visible="deleteModalVisible"
+            title="确认删除"
+            @ok="handleDelete"
+            @cancel="cancelDelete"
+            :okType="'danger'"
+            okText="删除"
+            cancelText="取消"
+        >
+            <p>{{ deleteConfirmMessage }}</p>
+        </a-modal>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
+import { 
+    PlusOutlined, 
+    DeleteOutlined, 
+    CalendarOutlined 
+} from '@ant-design/icons-vue'
+import { message } from 'ant-design-vue'
 
-const viewMode = ref('grid')
+// 当前激活的任务组
+const activeTaskGroup = ref('1')
+// 当前展开的任务类别
+const activeCategories = ref(['1'])
 
-const plans = [
+// 弹窗显示状态
+const taskModalVisible = ref(false)
+const groupModalVisible = ref(false)
+const categoryModalVisible = ref(false)
+
+// 当前选中的任务类别
+const currentCategory = ref(null)
+
+// 新任务组数据
+const newGroup = reactive({
+    title: ''
+})
+
+// 新任务类别数据
+const newCategory = reactive({
+    title: ''
+})
+
+// 新任务数据
+const newTask = reactive({
+    title: '',
+    priority: 'medium',
+    dueDate: null,
+    progress: 0,
+    completed: false
+})
+
+// 示例数据
+const taskGroups = ref([
     {
-        id: 1,
-        title: '完成高等数学第三章习题',
-        date: '2024-02-20',
-        category: '课程',
-        progress: 75,
-        status: 'urgent'
-    },
-    {
-        id: 2,
-        title: '阅读《深入理解计算机系统》第四章',
-        date: '2024-02-22',
-        category: '阅读',
-        progress: 100,
-        status: 'completed'
-    },
-    {
-        id: 3,
-        title: '准备英语演讲稿',
-        date: '2024-02-25',
-        category: '课程',
-        progress: 30,
-        status: 'normal'
+        key: '1',
+        title: '学习',
+        categories: [
+            {
+                key: '1',
+                title: '课程学习',
+                tasks: [
+                    {
+                        id: '1',
+                        title: '完成高等数学第三章习题',
+                        priority: 'high',
+                        dueDate: '2024-02-20',
+                        progress: 75,
+                        completed: false
+                    }
+                ]
+            }
+        ]
     }
-]
+])
+
+// 删除相关的状态
+const deleteModalVisible = ref(false)
+const deleteConfirmMessage = ref('')
+const deleteCallback = ref(null)
+
+// 获取优先级颜色
+const getPriorityColor = (priority) => {
+    const colors = {
+        high: 'red',
+        medium: 'orange',
+        low: 'blue'
+    }
+    return colors[priority] || 'blue'
+}
+
+// 获取优先级文本
+const getPriorityText = (priority) => {
+    const texts = {
+        high: '高优先级',
+        medium: '中优先级',
+        low: '低优先级'
+    }
+    return texts[priority] || '普通'
+}
+
+// 获取进度条状态
+const getProgressStatus = (task) => {
+    if (task.completed) return 'success'
+    if (task.progress >= 100) return 'success'
+    if (new Date(task.dueDate) < new Date()) return 'exception'
+    return 'active'
+}
+
+// 方法定义
+const showAddTaskModal = (category) => {
+    currentCategory.value = category
+    taskModalVisible.value = true
+    // 重置表单
+    Object.assign(newTask, {
+        title: '',
+        priority: 'medium',
+        dueDate: null,
+        progress: 0,
+        completed: false
+    })
+}
+
+const handleAddTask = () => {
+    if (!newTask.title) {
+        message.error('请输入任务名称')
+        return
+    }
+
+    if (currentCategory.value) {
+        const task = {
+            id: Date.now().toString(),
+            ...newTask
+        }
+        
+        // 找到对应的任务类别并添加任务
+        const group = taskGroups.value.find(g => g.key === activeTaskGroup.value)
+        if (group) {
+            const category = group.categories.find(c => c.key === currentCategory.value.key)
+            if (category) {
+                category.tasks.push(task)
+                message.success('添加任务成功')
+                taskModalVisible.value = false
+            }
+        }
+    }
+}
+
+const showAddCategoryModal = () => {
+    categoryModalVisible.value = true
+    newCategory.title = ''
+}
+
+const handleAddCategory = () => {
+    if (!newCategory.title) {
+        message.error('请输入类别名称')
+        return
+    }
+
+    const group = taskGroups.value.find(g => g.key === activeTaskGroup.value)
+    if (group) {
+        const category = {
+            key: Date.now().toString(),
+            title: newCategory.title,
+            tasks: []
+        }
+        group.categories.push(category)
+        message.success('添加类别成功')
+        categoryModalVisible.value = false
+    }
+}
+
+const showAddGroupModal = () => {
+    groupModalVisible.value = true
+    newGroup.title = ''
+}
+
+const handleAddGroup = () => {
+    if (!newGroup.title) {
+        message.error('请输入任务组名称')
+        return
+    }
+
+    const group = {
+        key: Date.now().toString(),
+        title: newGroup.title,
+        categories: []
+    }
+    taskGroups.value.push(group)
+    message.success('添加任务组成功')
+    groupModalVisible.value = false
+}
+
+// 确认删除任务组
+const confirmDeleteGroup = (group) => {
+    deleteConfirmMessage.value = `确定要删除任务组"${group.title}"吗？这将删除该组下的所有任务类别和任务。`
+    deleteCallback.value = () => {
+        const index = taskGroups.value.findIndex(g => g.key === group.key)
+        if (index !== -1) {
+            taskGroups.value.splice(index, 1)
+            message.success('删除任务组成功')
+        }
+    }
+    deleteModalVisible.value = true
+}
+
+// 确认删除任务类别
+const confirmDeleteCategory = (group, category) => {
+    deleteConfirmMessage.value = `确定要删除任务类别"${category.title}"吗？这将删除该类别下的所有任务。`
+    deleteCallback.value = () => {
+        const groupIndex = taskGroups.value.findIndex(g => g.key === group.key)
+        if (groupIndex !== -1) {
+            const categoryIndex = group.categories.findIndex(c => c.key === category.key)
+            if (categoryIndex !== -1) {
+                group.categories.splice(categoryIndex, 1)
+                message.success('删除任务类别成功')
+            }
+        }
+    }
+    deleteModalVisible.value = true
+}
+
+// 确认删除任务
+const confirmDeleteTask = (category, task) => {
+    deleteConfirmMessage.value = `确定要删除任务"${task.title}"吗？`
+    deleteCallback.value = () => {
+        const taskIndex = category.tasks.findIndex(t => t.id === task.id)
+        if (taskIndex !== -1) {
+            category.tasks.splice(taskIndex, 1)
+            message.success('删除任务成功')
+        }
+    }
+    deleteModalVisible.value = true
+}
+
+// 处理删除操作
+const handleDelete = () => {
+    if (deleteCallback.value) {
+        deleteCallback.value()
+        deleteModalVisible.value = false
+        deleteCallback.value = null
+    }
+}
+
+// 取消删除
+const cancelDelete = () => {
+    deleteModalVisible.value = false
+    deleteCallback.value = null
+}
 </script>
 
 <style scoped>
-.plan-container {
-    padding: 20px;
-    height: 100%;
-    background-color: var(--el-bg-color);
+.long-term-plan {
+    padding: 24px;
+    background: #f5f9ff;
+    min-height: calc(100vh - 48px);
+    overflow-x: hidden;
 }
 
-/* 顶部分类标签栏 */
-.category-header {
-    display: flex;
-    gap: 12px;
+.custom-tabs {
+    background: white;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
     margin-bottom: 24px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--el-border-color-lighter);
+    overflow-x: auto;
 }
 
-.category-item {
+.tab-title {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.3s;
-    background: var(--el-fill-color-lighter);
 }
 
-.category-item.active {
-    background: var(--el-color-primary-light-9);
-    color: var(--el-color-primary);
-}
-
-.category-count {
-    font-size: 12px;
-    padding: 2px 8px;
-    background: rgba(0, 0, 0, 0.04);
-    border-radius: 10px;
-}
-
-.add-category-btn {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 6px 16px;
-    border: 1px dashed var(--el-border-color);
-    border-radius: 20px;
-    background: transparent;
-    color: var(--el-text-color-secondary);
-    cursor: pointer;
+.delete-icon {
+    font-size: 14px;
+    color: #ff4d4f;
+    opacity: 0.5;
     transition: all 0.3s;
 }
 
-.add-category-btn:hover {
-    border-color: var(--el-color-primary);
-    color: var(--el-color-primary);
+.delete-icon:hover {
+    opacity: 1;
 }
 
-/* 操作栏 */
-.operation-bar {
+.task-categories {
+    margin-top: 16px;
+}
+
+.custom-collapse {
+    background: white;
+    border-radius: 8px;
+}
+
+.category-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    width: 100%;
 }
 
-.view-switch {
-    display: flex;
-    gap: 4px;
-    padding: 2px;
-    background: var(--el-fill-color-light);
-    border-radius: 6px;
+.task-list {
+    padding: 8px 0;
 }
 
-.switch-btn {
-    padding: 6px 10px;
-    border: none;
-    background: transparent;
-    border-radius: 4px;
-    cursor: pointer;
-    color: var(--el-text-color-regular);
-}
-
-.switch-btn.active {
+.custom-list {
     background: white;
-    color: var(--el-color-primary);
 }
 
-.right-section {
-    display: flex;
-    gap: 12px;
-}
-
-.filter-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border: none;
-    background: var(--el-fill-color-light);
-    border-radius: 6px;
-    color: var(--el-text-color-regular);
-    cursor: pointer;
+.task-list-item {
+    padding: 12px 24px;
     transition: all 0.3s;
 }
 
-.filter-btn:hover {
-    background: var(--el-fill-color-dark);
+.task-list-item:hover {
+    background: #fafafa;
 }
 
-/* 计划列表区域 */
-.plans-wrapper {
-    height: calc(100% - 120px);
-    overflow-y: auto;
-}
-
-.plan-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-    padding: 4px;
-}
-
-.plan-item {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+.task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
     overflow: hidden;
 }
 
-.plan-content {
-    padding: 16px;
+.task-completed {
+    text-decoration: line-through;
+    color: #00000040;
 }
 
-.plan-status {
-    margin-bottom: 12px;
-}
-
-.plan-status.urgent {
-    color: var(--el-color-danger);
-}
-
-.plan-status.completed {
-    color: var(--el-color-success);
-}
-
-.plan-title {
-    margin: 0 0 12px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--el-text-color-primary);
-}
-
-.plan-progress {
-    margin-bottom: 12px;
-}
-
-.progress-bar {
-    height: 4px;
-    background: var(--el-fill-color-light);
-    border-radius: 2px;
+.task-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    max-width: 100%;
     overflow: hidden;
 }
 
-.progress {
-    height: 100%;
-    background: var(--el-color-primary);
-    border-radius: 2px;
-    transition: width 0.3s;
-}
-
-.plan-date {
+.due-date {
+    color: #00000073;
     font-size: 12px;
-    color: var(--el-text-color-secondary);
 }
 
-.add-plan-card {
-    border: 1px dashed var(--el-border-color);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 120px;
+.add-category-btn {
+    margin-top: 16px;
 }
 
-.add-plan-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border: none;
-    background: transparent;
-    color: var(--el-text-color-secondary);
-    cursor: pointer;
-    transition: all 0.3s;
+:deep(.ant-tabs-nav) {
+    margin-bottom: 16px;
 }
 
-.add-plan-btn:hover {
-    color: var(--el-color-primary);
+:deep(.ant-tabs-content) {
+    overflow-x: auto;
 }
 
-/* 列表视图 */
-.plan-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+:deep(.ant-collapse) {
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
-.plan-row {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 12px 16px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+:deep(.ant-list) {
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
-.plan-checkbox {
-    display: flex;
-    align-items: center;
+:deep(.ant-list-item-meta-description) {
+    width: 100%;
 }
 
-.plan-checkbox input {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-    cursor: pointer;
+:deep(.ant-progress) {
+    width: 200px;
 }
 
-.plan-meta {
-    display: flex;
-    gap: 12px;
-    font-size: 12px;
-    color: var(--el-text-color-secondary);
-}
-
-.plan-actions {
-    color: var(--el-text-color-secondary);
-    cursor: pointer;
-    padding: 4px;
-}
-
-.add-plan-row {
-    padding: 12px;
-    border: 1px dashed var(--el-border-color);
-    border-radius: 8px;
-    display: flex;
-    justify-content: center;
+:deep(.ant-checkbox-wrapper) {
+    flex: 1;
 }
 </style> 
