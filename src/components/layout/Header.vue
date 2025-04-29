@@ -7,14 +7,25 @@
                 <span class="logo-text">知汇</span>
             </div>
 
-            <!-- 导航链接 -->
-            <!-- <ul class="nav-items">
-                <li v-for="item in navItems" :key="item.id" class="nav-item" :class="{ active: activeNav === item.id }"
-                    @click="activeNav = item.id">
-                    <component :is="item.icon" class="item-icon" />
-                    <span class="item-label">{{ item.label }}</span>
-                </li>
-            </ul> -->
+            <!-- 导航切换 -->
+            <div class="nav-toggle">
+                <button 
+                    class="toggle-btn" 
+                    :class="{ active: activeMode === 'personal' }"
+                    @click="switchMode('personal')"
+                >
+                    <UserIcon class="nav-icon" />
+                    <span>个人</span>
+                </button>
+                <button 
+                    class="toggle-btn" 
+                    :class="{ active: activeMode === 'team' }"
+                    @click="switchMode('team')"
+                >
+                    <TeamIcon class="nav-icon" />
+                    <span>团队</span>
+                </button>
+            </div>
         </div>
 
         <!-- 右侧功能区 -->
@@ -24,26 +35,18 @@
                 <ClockIcon class="time-icon" />
                 <span class="time-text">{{ currentTime }}</span>
             </div>
-
-            <!-- 搜索框 -->
-            <div class="search-box">
-                <input type="text" placeholder="搜索笔记、任务..." class="search-input" />
-                <div class="search-icon-wrapper">
-                    <SearchIcon class="search-icon" />
-                </div>
-            </div>
         </div>
 
         <!-- 通知、用户头像 -->
         <div class="nav-section">
             <!-- 通知 -->
             <div class="notice">
-                <NoticeIcon class="notice-icon" />  <!-- 通知图标 -->
+                <NoticeIcon class="notice-icon" />
             </div>
 
             <!-- 用户头像 -->
             <div class="avatar">
-                <AvatarIcon class="avatar-icon" />  <!-- 用户头像图标 -->
+                <AvatarIcon class="avatar-icon" />
             </div>
         </div>
     </nav>
@@ -52,24 +55,24 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import LogoIcon from '@/assets/logo-brain.svg'
-import LearningIcon from '@/assets/icon-learning.svg'
-import AiIcon from '@/assets/icon-ai.svg'
-import CommunityIcon from '@/assets/icon-community.svg'
 import ClockIcon from '@/assets/icon-clock.svg'
-import SearchIcon from '@/assets/icon-search.svg'
 import AvatarIcon from '@/assets/icon-avatar.svg'
 import NoticeIcon from '@/assets/icon-notice.svg'
+import UserIcon from '@/assets/icon-user.svg'
+import TeamIcon from '@/assets/icon-user.svg'
+
+// 定义emit
+const emit = defineEmits(['mode-change'])
 
 // 响应式状态
-const activeNav = ref('learning')
+const activeMode = ref('personal')
 const currentTime = ref('')
 
-// 导航项配置
-const navItems = [
-    { id: 'learning', label: '我的学习舱', icon: LearningIcon },
-    { id: 'ai', label: 'AI实验室', icon: AiIcon },
-    { id: 'community', label: '灵感社区', icon: CommunityIcon }
-]
+// 导航模式切换
+const switchMode = (mode) => {
+    activeMode.value = mode
+    emit('mode-change', mode)
+}
 
 // 时间更新逻辑
 let timer = null
@@ -129,34 +132,38 @@ onBeforeUnmount(() => {
     color: #2a6ebb;
 }
 
-/* 导航项 */
-.nav-items {
+/* 导航切换按钮 */
+.nav-toggle {
     display: flex;
-    gap: 24px;
-    list-style: none;
-    padding: 0;
-    margin: 0;
+    gap: 8px;
+    margin-left: 24px;
 }
 
-.nav-item {
+.toggle-btn {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 12px;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    color: #606266;
+    color: #666;
+    transition: all 0.3s ease;
 }
 
-.item-icon {
-    width: 20px;
-    height: 20px;
+.toggle-btn:hover {
+    background: #f5f5f5;
 }
 
-.item-label {
-    font-size: 14px;
-    font-weight: 500;
+.toggle-btn.active {
+    background: #e6f7ff;
+    color: #2a6ebb;
+}
+
+.nav-icon {
+    width: 16px;
+    height: 16px;
 }
 
 /* 时间显示 */
@@ -175,51 +182,19 @@ onBeforeUnmount(() => {
     font-size: 14px;
 }
 
-/* 搜索框 */
-.search-box {
-    position: relative;
-    width: 220px;
-    display: flex;
-    align-items: center;
-}
-
-.search-input {
-    width: 100%;
-    padding: 8px 36px 8px 12px;
-    border: 1px solid #dcdfe6;
-    border-radius: 16px;
-    font-size: 13px;
-    transition: all 0.2s ease;
-    outline: none;
-}
-
-.search-input:focus {
-    border-color: #2a6ebb;
-    box-shadow: 0 0 0 2px rgba(42, 110, 187, 0.1);
-}
-
-.search-icon-wrapper {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
+/* 通知和头像 */
+.notice, .avatar {
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.3s;
 }
 
-.search-icon-wrapper:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+.notice:hover, .avatar:hover {
+    background-color: #f5f5f5;
 }
 
-.search-icon {
-    width: 16px;
-    height: 16px;
-    color: #909399;
+.notice-icon, .avatar-icon {
+    width: 20px;
+    height: 20px;
+    color: #666;
 }
 </style>

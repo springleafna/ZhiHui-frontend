@@ -9,6 +9,7 @@ import Dashboard from '@/views/Dashboard.vue'
 import ArticleDetail from '@/views/ArticleDetail.vue'
 import Notes from '@/views/Notes.vue'
 import LongTermPlan from '@/views/LongTermPlan.vue'
+import DailyPlan from '@/views/DailyPlan.vue'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -67,6 +68,11 @@ const router = createRouter({
             path: '/notes',
             name: 'Notes',
             component: Notes
+        },
+        {
+            path: '/daily-plan',
+            name: 'DailyPlan',
+            component: DailyPlan
         },
         {
             path: '/long-term-plan',

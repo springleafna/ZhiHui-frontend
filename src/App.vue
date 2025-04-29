@@ -9,17 +9,26 @@ const route = useRoute()
 // 创建一个响应式状态来跟踪侧边栏是否折叠
 const isSidePanelCollapsed = ref(false)
 
-// 提供该状态给子组件
+// 创建一个响应式状态来跟踪当前模式（个人/团队）
+const activeMode = ref('personal')
+
+// 提供状态给子组件
 provide('isSidePanelCollapsed', isSidePanelCollapsed)
+provide('activeMode', activeMode)
 
 // 侧边栏折叠状态改变的处理函数
 const handleSidePanelToggle = (collapsed) => {
   isSidePanelCollapsed.value = collapsed
 }
+
+// 模式切换处理函数
+const handleModeChange = (mode) => {
+  activeMode.value = mode
+}
 </script>
 
 <template>
-  <Header v-if="!route.meta.hideLayout" />
+  <Header v-if="!route.meta.hideLayout" @mode-change="handleModeChange" />
   <div class="app-container" :class="{ 'no-layout': route.meta.hideLayout }">
     <SidePanel v-if="!route.meta.hideLayout" @toggle-collapse="handleSidePanelToggle" />
     <main class="main-content" :class="{ 

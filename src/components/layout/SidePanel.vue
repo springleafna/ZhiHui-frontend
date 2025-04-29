@@ -8,30 +8,50 @@
         </div>
         <!-- 导航菜单 -->
         <nav class="nav-section">
-            <ul>
-                <li v-for="item in navItems" :key="item.id" :class="{ 'active': activeItem === item.id }"
-                    @click="navigateTo(item)">
-                    <div class="nav-icon-container">
-                        <component :is="item.icon" class="nav-icon" />
-                    </div>
-                    <transition name="slide">
-                        <span v-show="!isCollapsed" class="nav-label">{{ item.label }}</span>
-                    </transition>
-                </li>
-            </ul>
+            <template v-if="activeMode === 'personal'">
+                <ul>
+                    <li v-for="item in personalNavItems" :key="item.id" 
+                        :class="{ 'active': activeItem === item.id }"
+                        @click="navigateTo(item)">
+                        <div class="nav-icon-container">
+                            <component :is="item.icon" class="nav-icon" />
+                        </div>
+                        <transition name="slide">
+                            <span v-show="!isCollapsed" class="nav-label">{{ item.label }}</span>
+                        </transition>
+                    </li>
+                </ul>
+            </template>
+            <template v-else>
+                <ul>
+                    <li v-for="item in teamNavItems" :key="item.id" 
+                        :class="{ 'active': activeItem === item.id }"
+                        @click="navigateTo(item)">
+                        <div class="nav-icon-container">
+                            <component :is="item.icon" class="nav-icon" />
+                        </div>
+                        <transition name="slide">
+                            <span v-show="!isCollapsed" class="nav-label">{{ item.label }}</span>
+                        </transition>
+                    </li>
+                </ul>
+            </template>
         </nav>
     </div>
 </template>
 
 <script setup>
 import { ref, inject, watch } from 'vue'
-import StudyIcon from '@/assets/icon-learning.svg'
-import AiIcon from '@/assets/icon-ai.svg'
-import BulbIcon from '@/assets/icon-community.svg'
+import { useRouter } from 'vue-router'
+import TaskIcon from '@/assets/icon-task.svg'
+import PlanIcon from '@/assets/icon-task.svg'
 import NoteIcon from '@/assets/icon-note.svg'
+import KnowledgeIcon from '@/assets/icon-task.svg'
+import QuadrantIcon from '@/assets/icon-task.svg'
+import ProjectIcon from '@/assets/icon-task.svg'
+import TeamIcon from '@/assets/icon-task.svg'
 import CollapseIcon from '@/assets/icon-collapse.svg'
 import ExpandIcon from '@/assets/icon-expand.svg'
-import { useRouter } from 'vue-router'
 
 // 定义emit
 const emit = defineEmits(['toggle-collapse'])
@@ -39,31 +59,34 @@ const emit = defineEmits(['toggle-collapse'])
 // 响应式状态
 const isCollapsed = ref(false)
 const isHovered = ref(false)
-const activeItem = ref('study')
+const activeItem = ref('task-center')
 
-// 尝试从父组件获取状态
-const isSidePanelCollapsed = inject('isSidePanelCollapsed', null)
+// 获取当前模式（个人/团队）
+const activeMode = inject('activeMode', ref('personal'))
 
-// 如果父组件提供了状态，则使用父组件的状态
-if (isSidePanelCollapsed !== null) {
-    watch(isSidePanelCollapsed, (newValue) => {
-        isCollapsed.value = newValue
-    })
-}
-
-// 导航项配置
-const navItems = [
-    { id: 'study', label: '我的学习舱', icon: StudyIcon, route: '/dashboard' },
+// 个人导航项
+const personalNavItems = [
+    { id: 'task-center', label: '任务中心', icon: TaskIcon, route: '/dashboard' },
+    { id: 'daily-plan', label: '每日计划', icon: PlanIcon, route: '/daily-plan' },
+    { id: 'long-term-plan', label: '长期计划', icon: PlanIcon, route: '/long-term-plan' },
+    { id: 'task-quadrant', label: '任务四象限', icon: QuadrantIcon, route: '/priority' },
     { id: 'notes', label: '我的笔记', icon: NoteIcon, route: '/notes' },
-    { id: 'ai', label: 'AI实验室', icon: AiIcon, route: '/ai-lab' },
-    { id: 'community', label: '灵感社区', icon: BulbIcon, route: '/community' }
+    { id: 'knowledge', label: '知识库', icon: KnowledgeIcon, route: '/knowledge' }
+]
+
+// 团队导航项
+const teamNavItems = [
+    { id: 'inbox', label: '收件箱', icon: TaskIcon, route: '/team/inbox' },
+    { id: 'my-tasks', label: '我的任务', icon: TaskIcon, route: '/team/my-tasks' },
+    { id: 'schedule', label: '日程安排', icon: PlanIcon, route: '/team/schedule' },
+    { id: 'projects', label: '团队项目', icon: ProjectIcon, route: '/team/projects' },
+    { id: 'members', label: '团队成员', icon: TeamIcon, route: '/team/members' }
 ]
 
 const router = useRouter()
 
 const toggleCollapse = () => {
     isCollapsed.value = !isCollapsed.value
-    // 向父组件发送状态变化
     emit('toggle-collapse', isCollapsed.value)
 }
 
@@ -159,6 +182,10 @@ const navigateTo = (item) => {
 }
 
 /* 导航菜单 */
+.nav-section {
+    padding: 20px 0;
+}
+
 .nav-section ul {
     padding: 0 12px;
     list-style: none;
@@ -166,14 +193,14 @@ const navigateTo = (item) => {
 }
 
 .nav-section li {
-    margin-top: 15px;
+    margin-top: 4px;
     display: flex;
     align-items: center;
     border-radius: 8px;
     cursor: pointer;
     transition: var(--transition);
     color: #606266;
-    padding: 14px;
+    padding: 12px;
 }
 
 .nav-section li:hover {
