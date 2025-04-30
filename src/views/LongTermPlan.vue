@@ -1,115 +1,258 @@
 <template>
     <div class="long-term-plan">
-        <!-- 任务组标签栏 -->
-        <a-tabs 
-            v-model:activeKey="activeTaskGroup" 
-            type="card"
-            class="custom-tabs"
-        >
-            <template #rightExtra>
-                <a-button type="primary" @click="showAddGroupModal">
-                    <template #icon><PlusOutlined /></template>
-                    添加任务组
-                </a-button>
-            </template>
-            <a-tab-pane v-for="group in taskGroups" :key="group.key" :tab="group.title">
-                <template #tab>
-                    <span class="tab-title">
-                        {{ group.title }}
-                        <DeleteOutlined 
-                            v-if="taskGroups.length > 1"
-                            class="delete-icon"
-                            @click.stop="confirmDeleteGroup(group)" 
-                        />
-                    </span>
-                </template>
-                <!-- 任务类别列表 -->
-                <div class="task-categories">
-                    <a-collapse 
-                        v-model:activeKey="activeCategories"
-                        class="custom-collapse"
-                    >
-                        <a-collapse-panel 
-                            v-for="category in group.categories" 
-                            :key="category.key" 
-                        >
-                            <template #header>
-                                <div class="category-header">
-                                    <span>{{ category.title }}</span>
-                                    <a-space>
-                                        <a-button type="link" @click.stop="showAddTaskModal(category)">
-                                            <PlusOutlined />添加任务
-                                        </a-button>
-                                        <DeleteOutlined 
-                                            class="delete-icon"
-                                            @click.stop="confirmDeleteCategory(group, category)" 
-                                        />
-                                    </a-space>
-                                </div>
-                            </template>
-                            <!-- 任务列表 -->
-                            <div class="task-list">
-                                <a-list :dataSource="category.tasks" class="custom-list">
-                                    <template #renderItem="{ item }">
-                                        <a-list-item class="task-list-item">
-                                            <a-list-item-meta>
-                                                <template #title>
-                                                    <div class="task-item">
-                                                        <a-checkbox 
-                                                            v-model:checked="item.completed"
-                                                            :class="{ 'task-completed': item.completed }"
-                                                        >
-                                                            {{ item.title }}
-                                                        </a-checkbox>
-                                                        <a-space>
-                                                            <a-tag :color="getPriorityColor(item.priority)">
-                                                                {{ getPriorityText(item.priority) }}
-                                                            </a-tag>
-                                                            <a-button 
-                                                                type="text" 
-                                                                danger
-                                                                @click="confirmDeleteTask(category, item)"
-                                                            >
-                                                                <DeleteOutlined />
-                                                            </a-button>
-                                                        </a-space>
-                                                    </div>
-                                                </template>
-                                                <template #description>
-                                                    <div class="task-meta">
-                                                        <span class="due-date">
-                                                            <CalendarOutlined /> {{ item.dueDate }}
-                                                        </span>
-                                                        <a-progress 
-                                                            :percent="item.progress" 
-                                                            size="small"
-                                                            :status="getProgressStatus(item)"
-                                                        />
-                                                    </div>
-                                                </template>
-                                            </a-list-item-meta>
-                                        </a-list-item>
+        <div class="main-content">
+            <!-- 左侧任务列表 -->
+            <div class="task-list-container">
+                <a-tabs 
+                    v-model:activeKey="activeTaskGroup" 
+                    type="card"
+                    class="custom-tabs"
+                >
+                    <template #rightExtra>
+                        <a-space>
+                            <a-select
+                                v-model:value="sortType"
+                                style="width: 120px"
+                                @change="handleSortChange"
+                            >
+                                <a-select-option value="dueDate">截止日期</a-select-option>
+                                <a-select-option value="priority">优先级</a-select-option>
+                                <a-select-option value="progress">完成进度</a-select-option>
+                            </a-select>
+                            <a-button type="primary" @click="showAddGroupModal">
+                                <template #icon><PlusOutlined /></template>
+                                添加任务组
+                            </a-button>
+                        </a-space>
+                    </template>
+                    <a-tab-pane v-for="group in taskGroups" :key="group.key" :tab="group.title">
+                        <template #tab>
+                            <span class="tab-title">
+                                {{ group.title }}
+                                <DeleteOutlined 
+                                    v-if="taskGroups.length > 1"
+                                    class="delete-icon"
+                                    @click.stop="confirmDeleteGroup(group)" 
+                                />
+                            </span>
+                        </template>
+                        <!-- 任务类别列表 -->
+                        <div class="task-categories">
+                            <a-collapse 
+                                v-model:activeKey="activeCategories"
+                                class="custom-collapse"
+                            >
+                                <a-collapse-panel 
+                                    v-for="category in group.categories" 
+                                    :key="category.key" 
+                                >
+                                    <template #header>
+                                        <div class="category-header">
+                                            <span>{{ category.title }}</span>
+                                            <a-space>
+                                                <a-button type="link" @click.stop="showAddTaskModal(category)">
+                                                    <PlusOutlined />添加任务
+                                                </a-button>
+                                                <DeleteOutlined 
+                                                    class="delete-icon"
+                                                    @click.stop="confirmDeleteCategory(group, category)" 
+                                                />
+                                            </a-space>
+                                        </div>
                                     </template>
-                                </a-list>
-                            </div>
-                        </a-collapse-panel>
-                    </a-collapse>
-                    <!-- 添加任务类别按钮 -->
-                    <a-button 
-                        type="dashed" 
-                        block 
-                        @click="showAddCategoryModal" 
-                        class="add-category-btn"
-                    >
-                        <PlusOutlined /> 添加任务类别
-                    </a-button>
-                </div>
-            </a-tab-pane>
-        </a-tabs>
+                                    <!-- 任务列表 -->
+                                    <div class="task-list">
+                                        <!-- 未完成任务 -->
+                                        <div class="task-section">
+                                            <div class="section-header">
+                                                <h3>进行中</h3>
+                                                <span class="task-count">{{ category.tasks.filter(t => !t.completed).length }}个任务</span>
+                                            </div>
+                                            <a-list :dataSource="category.tasks.filter(t => !t.completed)" class="custom-list">
+                                                <template #renderItem="{ item }">
+                                                    <a-list-item class="task-list-item">
+                                                        <div class="task-item">
+                                                            <div class="task-left">
+                                                                <a-checkbox 
+                                                                    v-model:checked="item.completed"
+                                                                    :class="{ 'task-completed': item.completed }"
+                                                                    @click.stop
+                                                                >
+                                                                    {{ item.title }}
+                                                                </a-checkbox>
+                                                            </div>
+                                                            <div class="task-right">
+                                                                <a-space>
+                                                                    <a-tag :color="getPriorityColor(item.priority)">
+                                                                        {{ getPriorityText(item.priority) }}
+                                                                    </a-tag>
+                                                                    <a-button 
+                                                                        type="link"
+                                                                        @click="handleTaskClick(item)"
+                                                                    >
+                                                                        <EditOutlined />
+                                                                    </a-button>
+                                                                    <a-button 
+                                                                        type="link" 
+                                                                        danger
+                                                                        @click.stop="confirmDeleteTask(category, item)"
+                                                                    >
+                                                                        <DeleteOutlined />
+                                                                    </a-button>
+                                                                </a-space>
+                                                            </div>
+                                                        </div>
+                                                        <div class="task-meta">
+                                                            <span class="due-date">
+                                                                <CalendarOutlined /> {{ item.dueDate }}
+                                                            </span>
+                                                        </div>
+                                                    </a-list-item>
+                                                </template>
+                                            </a-list>
+                                        </div>
+
+                                        <!-- 已完成任务 -->
+                                        <div class="task-section completed-section" v-if="category.tasks.filter(t => t.completed).length > 0">
+                                            <div class="section-header">
+                                                <h3>已完成</h3>
+                                                <span class="task-count">{{ category.tasks.filter(t => t.completed).length }}个任务</span>
+                                            </div>
+                                            <a-list :dataSource="category.tasks.filter(t => t.completed)" class="custom-list">
+                                                <template #renderItem="{ item }">
+                                                    <a-list-item class="task-list-item completed">
+                                                        <div class="task-item">
+                                                            <div class="task-left">
+                                                                <a-checkbox 
+                                                                    v-model:checked="item.completed"
+                                                                    :class="{ 'task-completed': item.completed }"
+                                                                    @click.stop
+                                                                >
+                                                                    {{ item.title }}
+                                                                </a-checkbox>
+                                                            </div>
+                                                            <div class="task-right">
+                                                                <a-space>
+                                                                    <a-tag :color="getPriorityColor(item.priority)">
+                                                                        {{ getPriorityText(item.priority) }}
+                                                                    </a-tag>
+                                                                    <a-button 
+                                                                        type="link"
+                                                                        @click="handleTaskClick(item)"
+                                                                    >
+                                                                        <EditOutlined />
+                                                                    </a-button>
+                                                                    <a-button 
+                                                                        type="link" 
+                                                                        danger
+                                                                        @click.stop="confirmDeleteTask(category, item)"
+                                                                    >
+                                                                        <DeleteOutlined />
+                                                                    </a-button>
+                                                                </a-space>
+                                                            </div>
+                                                        </div>
+                                                        <div class="task-meta">
+                                                            <span class="due-date">
+                                                                <CalendarOutlined /> {{ item.dueDate }}
+                                                            </span>
+                                                        </div>
+                                                    </a-list-item>
+                                                </template>
+                                            </a-list>
+                                        </div>
+                                    </div>
+                                </a-collapse-panel>
+                            </a-collapse>
+                            <!-- 添加任务类别按钮 -->
+                            <a-button 
+                                type="dashed" 
+                                block 
+                                @click="showAddCategoryModal" 
+                                class="add-category-btn"
+                            >
+                                <PlusOutlined /> 添加任务类别
+                            </a-button>
+                        </div>
+                    </a-tab-pane>
+                </a-tabs>
+            </div>
+
+            <!-- 右侧任务详情 -->
+            <div class="task-detail-container">
+                <template v-if="selectedTask">
+                    <div class="detail-header">
+                        <h2>任务详情</h2>
+                        <a-space>
+                            <a-button type="primary" @click="handleTaskUpdate">确定</a-button>
+                            <a-button @click="cancelEdit">取消</a-button>
+                        </a-space>
+                    </div>
+                    <div class="detail-content">
+                        <h3>任务名称</h3>
+                        <a-input v-model:value="selectedTask.title" />
+                        
+                        <h3>截止时间</h3>
+                        <a-date-picker 
+                            v-model:value="selectedTask.dueDate" 
+                            style="width: 100%" 
+                            valueFormat="YYYY-MM-DD"
+                        />
+                        
+                        <h3>优先级</h3>
+                        <a-radio-group v-model:value="selectedTask.priority" class="priority-group">
+                            <a-radio-button value="low">低</a-radio-button>
+                            <a-radio-button value="medium">中</a-radio-button>
+                            <a-radio-button value="high">高</a-radio-button>
+                        </a-radio-group>
+                        
+                        <h3>描述</h3>
+                        <a-textarea 
+                            v-model:value="selectedTask.description" 
+                            :rows="4" 
+                            placeholder="添加任务描述..."
+                        />
+                    </div>
+                </template>
+                <template v-else>
+                    <div class="task-statistics">
+                        <h2>任务概览</h2>
+                        <div class="statistics-content">
+                            <a-row :gutter="[16, 16]">
+                                <a-col :span="12">
+                                    <a-card>
+                                        <template #title>总任务数</template>
+                                        <h3>{{ getTotalTasks() }}</h3>
+                                    </a-card>
+                                </a-col>
+                                <a-col :span="12">
+                                    <a-card>
+                                        <template #title>已完成</template>
+                                        <h3>{{ getCompletedTasks() }}</h3>
+                                    </a-card>
+                                </a-col>
+                                <a-col :span="12">
+                                    <a-card>
+                                        <template #title>待完成</template>
+                                        <h3>{{ getPendingTasks() }}</h3>
+                                    </a-card>
+                                </a-col>
+                                <a-col :span="12">
+                                    <a-card>
+                                        <template #title>完成率</template>
+                                        <h3>{{ getCompletionRate() }}%</h3>
+                                    </a-card>
+                                </a-col>
+                            </a-row>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
 
         <!-- 添加任务组弹窗 -->
         <a-modal
-            v-model:visible="groupModalVisible"
+            v-model:open="groupModalVisible"
             title="添加任务组"
             @ok="handleAddGroup"
             @cancel="groupModalVisible = false"
@@ -123,7 +266,7 @@
 
         <!-- 添加任务类别弹窗 -->
         <a-modal
-            v-model:visible="categoryModalVisible"
+            v-model:open="categoryModalVisible"
             title="添加任务类别"
             @ok="handleAddCategory"
             @cancel="categoryModalVisible = false"
@@ -137,7 +280,7 @@
 
         <!-- 添加任务弹窗 -->
         <a-modal
-            v-model:visible="taskModalVisible"
+            v-model:open="taskModalVisible"
             title="添加任务"
             @ok="handleAddTask"
             @cancel="taskModalVisible = false"
@@ -154,14 +297,18 @@
                     </a-select>
                 </a-form-item>
                 <a-form-item label="截止日期">
-                    <a-date-picker v-model:value="newTask.dueDate" style="width: 100%" />
+                    <a-date-picker 
+                        v-model:value="newTask.dueDate" 
+                        style="width: 100%" 
+                        valueFormat="YYYY-MM-DD"
+                    />
                 </a-form-item>
             </a-form>
         </a-modal>
 
         <!-- 删除确认弹窗 -->
         <a-modal
-            v-model:visible="deleteModalVisible"
+            v-model:open="deleteModalVisible"
             title="确认删除"
             @ok="handleDelete"
             @cancel="cancelDelete"
@@ -179,7 +326,8 @@ import { ref, reactive } from 'vue'
 import { 
     PlusOutlined, 
     DeleteOutlined, 
-    CalendarOutlined 
+    CalendarOutlined,
+    EditOutlined
 } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 
@@ -211,7 +359,7 @@ const newTask = reactive({
     title: '',
     priority: 'medium',
     dueDate: null,
-    progress: 0,
+    description: '',
     completed: false
 })
 
@@ -243,6 +391,13 @@ const taskGroups = ref([
 const deleteModalVisible = ref(false)
 const deleteConfirmMessage = ref('')
 const deleteCallback = ref(null)
+
+// 排序方式
+const sortType = ref('dueDate')
+
+// 任务详情抽屉相关
+const taskDrawerVisible = ref(false)
+const selectedTask = ref(null)
 
 // 获取优先级颜色
 const getPriorityColor = (priority) => {
@@ -281,7 +436,7 @@ const showAddTaskModal = (category) => {
         title: '',
         priority: 'medium',
         dueDate: null,
-        progress: 0,
+        description: '',
         completed: false
     })
 }
@@ -412,6 +567,90 @@ const cancelDelete = () => {
     deleteModalVisible.value = false
     deleteCallback.value = null
 }
+
+// 处理排序变化
+const handleSortChange = (value) => {
+    const group = taskGroups.value.find(g => g.key === activeTaskGroup.value)
+    if (group) {
+        group.categories.forEach(category => {
+            category.tasks.sort((a, b) => {
+                switch (value) {
+                    case 'dueDate':
+                        return new Date(a.dueDate) - new Date(b.dueDate)
+                    case 'priority':
+                        const priorityWeight = { high: 3, medium: 2, low: 1 }
+                        return priorityWeight[b.priority] - priorityWeight[a.priority]
+                    case 'progress':
+                        return b.progress - a.progress
+                    default:
+                        return 0
+                }
+            })
+        })
+    }
+}
+
+// 修改任务列表点击事件
+const handleTaskClick = (task) => {
+    selectedTask.value = {
+        ...task,
+        dueDate: task.dueDate || null
+    }
+    taskDrawerVisible.value = true
+}
+
+// 保存任务更新
+const handleTaskUpdate = () => {
+    if (selectedTask.value) {
+        // 更新原始任务数据
+        const group = taskGroups.value.find(g => g.key === activeTaskGroup.value)
+        if (group) {
+            group.categories.forEach(category => {
+                const taskIndex = category.tasks.findIndex(t => t.id === selectedTask.value.id)
+                if (taskIndex !== -1) {
+                    category.tasks[taskIndex] = { ...selectedTask.value }
+                }
+            })
+        }
+        message.success('任务更新成功')
+    }
+}
+
+// 取消编辑
+const cancelEdit = () => {
+    selectedTask.value = null
+}
+
+// 获取任务统计数据
+const getTotalTasks = () => {
+    let total = 0
+    taskGroups.value.forEach(group => {
+        group.categories.forEach(category => {
+            total += category.tasks.length
+        })
+    })
+    return total
+}
+
+const getCompletedTasks = () => {
+    let completed = 0
+    taskGroups.value.forEach(group => {
+        group.categories.forEach(category => {
+            completed += category.tasks.filter(task => task.completed).length
+        })
+    })
+    return completed
+}
+
+const getPendingTasks = () => {
+    return getTotalTasks() - getCompletedTasks()
+}
+
+const getCompletionRate = () => {
+    const total = getTotalTasks()
+    if (total === 0) return 0
+    return Math.round((getCompletedTasks() / total) * 100)
+}
 </script>
 
 <style scoped>
@@ -419,7 +658,74 @@ const cancelDelete = () => {
     padding: 24px;
     background: #f5f9ff;
     min-height: calc(100vh - 48px);
-    overflow-x: hidden;
+}
+
+.main-content {
+    display: flex;
+    gap: 24px;
+    height: 100%;
+}
+
+.task-list-container {
+    flex: 1;
+    min-width: 0;
+}
+
+.task-detail-container {
+    width: 400px;
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-header h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.detail-content h3 {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.task-statistics h2 {
+    margin: 0 0 24px 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.statistics-content :deep(.ant-card) {
+    border-radius: 8px;
+}
+
+.statistics-content :deep(.ant-card-head-title) {
+    font-size: 14px;
+    color: #666;
+}
+
+.statistics-content h3 {
+    margin: 0;
+    font-size: 24px;
+    color: #1890ff;
+    text-align: center;
 }
 
 .custom-tabs {
@@ -427,58 +733,14 @@ const cancelDelete = () => {
     padding: 16px;
     border-radius: 8px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-    margin-bottom: 24px;
-    overflow-x: auto;
-}
-
-.tab-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.delete-icon {
-    font-size: 14px;
-    color: #ff4d4f;
-    opacity: 0.5;
-    transition: all 0.3s;
-}
-
-.delete-icon:hover {
-    opacity: 1;
-}
-
-.task-categories {
-    margin-top: 16px;
-}
-
-.custom-collapse {
-    background: white;
-    border-radius: 8px;
-}
-
-.category-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
-
-.task-list {
-    padding: 8px 0;
-}
-
-.custom-list {
-    background: white;
 }
 
 .task-list-item {
-    padding: 12px 24px;
-    transition: all 0.3s;
-}
-
-.task-list-item:hover {
-    background: #fafafa;
+    padding: 16px 24px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .task-item {
@@ -486,8 +748,29 @@ const cancelDelete = () => {
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    max-width: 100%;
+    padding: 8px 0;
+}
+
+.task-left {
+    flex: 1;
     overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.task-right {
+    flex-shrink: 0;
+    margin-left: 16px;
+}
+
+.task-meta {
+    margin-top: 8px;
+    padding-left: 22px;
+}
+
+.due-date {
+    color: #666;
+    font-size: 13px;
 }
 
 .task-completed {
@@ -495,51 +778,75 @@ const cancelDelete = () => {
     color: #00000040;
 }
 
-.task-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-    max-width: 100%;
-    overflow: hidden;
-}
-
-.due-date {
-    color: #00000073;
-    font-size: 12px;
-}
-
-.add-category-btn {
-    margin-top: 16px;
-}
-
-:deep(.ant-tabs-nav) {
-    margin-bottom: 16px;
-}
-
-:deep(.ant-tabs-content) {
-    overflow-x: auto;
-}
-
-:deep(.ant-collapse) {
-    max-width: 100%;
-    overflow-x: hidden;
-}
-
-:deep(.ant-list) {
-    max-width: 100%;
-    overflow-x: hidden;
-}
-
-:deep(.ant-list-item-meta-description) {
+.priority-group {
     width: 100%;
+    display: flex;
 }
 
-:deep(.ant-progress) {
-    width: 200px;
+:deep(.ant-list-item) {
+    flex-direction: column;
+    align-items: stretch;
 }
 
 :deep(.ant-checkbox-wrapper) {
-    flex: 1;
+    color: #333;
+}
+
+:deep(.ant-btn-link) {
+    padding: 4px 8px;
+}
+
+:deep(.ant-space) {
+    flex-wrap: nowrap;
+}
+
+:deep(.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active) {
+    background: #1890ff;
+    border-color: #1890ff;
+}
+
+:deep(.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn) {
+    color: #fff;
+}
+
+:deep(.ant-checkbox-checked .ant-checkbox-inner) {
+    background-color: #1890ff;
+    border-color: #1890ff;
+}
+
+.task-section {
+    margin-bottom: 24px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.task-count {
+    font-size: 14px;
+    color: #999;
+}
+
+.completed-section {
+    opacity: 0.8;
+}
+
+.completed-section .task-list-item {
+    background: #fafafa;
+}
+
+.task-list-item.completed {
+    opacity: 0.8;
 }
 </style> 
