@@ -387,9 +387,6 @@ import VoiceIcon from '@/assets/icon-voice.svg'
   background-color: #e6f4ff;
 }
 
-.voice-icon {
-  
-}
 
 .voice-icon :deep(svg) {
   width: 100%;
@@ -402,7 +399,7 @@ import VoiceIcon from '@/assets/icon-voice.svg'
 
 .note-input {
   width: 100%;
-  height: 120px;
+  height: 160px;
   padding: 16px;
   border: none;
   border-radius: 12px;

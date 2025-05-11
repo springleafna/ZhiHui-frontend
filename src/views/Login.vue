@@ -9,11 +9,11 @@
             
             <form class="login-form" @submit.prevent="handleLogin">
                 <div class="form-group">
-                    <label>用户名</label>
+                    <label>账号</label>
                     <input 
                         type="text" 
-                        v-model="loginForm.username" 
-                        placeholder="example@zhihui.com"
+                        v-model="loginForm.account" 
+                        placeholder="请输入手机号/邮箱"
                         class="form-input"
                     />
                 </div>
@@ -74,6 +74,8 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { loginByPassword } from '@/api/user'
+import { message } from 'ant-design-vue'
 import LogoIcon from '@/assets/logo-brain.svg'
 import WechatIcon from '@/assets/icon-wechat.svg'
 import QQIcon from '@/assets/icon-qq.svg'
@@ -84,14 +86,18 @@ import EyeOffIcon from '@/assets/icon-eye-off.svg'
 const router = useRouter()
 const showPassword = ref(false)
 const loginForm = reactive({
-    username: '',
+    account: '',
     password: '',
     remember: false
 })
 
-const handleLogin = () => {
-    // 处理登录逻辑
-    console.log('Login form submitted:', loginForm)
+const handleLogin = async () => {
+    try {
+        await loginByPassword(loginForm.account, loginForm.password)
+        router.push('/dashboard') // 登录成功后跳转到首页
+    } catch (error) {
+        console.error('登录失败:', error)
+    }
 }
 
 const goToRegister = () => {

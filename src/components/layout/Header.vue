@@ -45,8 +45,17 @@
             </div>
 
             <!-- 用户头像 -->
-            <div class="avatar">
-                <AvatarIcon class="avatar-icon" />
+            <div class="avatar-container">
+                <div class="avatar" @click="showDropdown = !showDropdown">
+                    <AvatarIcon class="avatar-icon" />
+                </div>
+                <!-- 下拉菜单 -->
+                <div class="dropdown-menu" v-show="showDropdown">
+                    <div class="dropdown-item" @click="handleLogout">
+                        <LogoutIcon class="dropdown-icon" />
+                        <span>退出登录</span>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
@@ -54,20 +63,43 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
+import { logout } from '@/api/user'
+import { message } from 'ant-design-vue'
 import LogoIcon from '@/assets/logo-brain.svg'
 import ClockIcon from '@/assets/icon-clock.svg'
 import AvatarIcon from '@/assets/icon-avatar.svg'
 import NoticeIcon from '@/assets/icon-notice.svg'
 import UserIcon from '@/assets/icon-user.svg'
 import TeamIcon from '@/assets/icon-user.svg'
-
+import LogoutIcon from '@/assets/icon-user.svg'
 
 // 定义emit
 const emit = defineEmits(['mode-change'])
+const router = useRouter()
 
 // 响应式状态
 const activeMode = ref('personal')
 const currentTime = ref('')
+const showDropdown = ref(false)
+
+// 处理点击外部关闭下拉菜单
+const handleClickOutside = (event) => {
+    const avatarContainer = document.querySelector('.avatar-container')
+    if (avatarContainer && !avatarContainer.contains(event.target)) {
+        showDropdown.value = false
+    }
+}
+
+// 处理退出登录
+const handleLogout = async () => {
+    try {
+        await logout()
+        router.push('/login')
+    } catch (error) {
+        console.error('退出登录失败:', error)
+    }
+}
 
 // 导航模式切换
 const switchMode = (mode) => {
@@ -90,10 +122,14 @@ const updateTime = () => {
 onMounted(() => {
     updateTime()
     timer = setInterval(updateTime, 1000)
+    // 添加点击外部关闭下拉菜单的监听
+    document.addEventListener('click', handleClickOutside)
 })
 
 onBeforeUnmount(() => {
     clearInterval(timer)
+    // 移除点击外部关闭下拉菜单的监听
+    document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
@@ -193,9 +229,50 @@ onBeforeUnmount(() => {
     background-color: #f5f5f5;
 }
 
-.notice-icon, .avatar-icon {
-    width: 20px;
-    height: 20px;
+/* 头像容器 */
+.avatar-container {
+    position: relative;
+}
+
+/* 下拉菜单 */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    min-width: 120px;
+    z-index: 1000;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.dropdown-item:hover {
+    background-color: #f5f5f5;
+}
+
+.dropdown-icon {
+    width: 16px;
+    height: 16px;
     color: #666;
+}
+
+/* 点击外部关闭下拉菜单 */
+.dropdown-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 999;
 }
 </style>
