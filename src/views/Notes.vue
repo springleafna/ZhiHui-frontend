@@ -88,6 +88,10 @@
         <!-- 右侧快速操作区 -->
         <div class="quick-actions">
             <div class="action-section">
+                <button class="action-button voice" @click="goToEditor()">
+                    <i class="icon-mic"></i>
+                    <span>开始创作</span>
+                </button>
                 <h3>快速记录</h3>
                 <button class="action-button voice">
                     <i class="icon-mic"></i>
@@ -134,6 +138,10 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+// 初始化路由
+const router = useRouter()
 
 const notes = ref([
     {
@@ -165,6 +173,10 @@ const notes = ref([
         time: '02-23 23:03'
     }
 ])
+
+const goToEditor = () => {
+    router.push('/editor')
+}
 </script>
 
 <style scoped>

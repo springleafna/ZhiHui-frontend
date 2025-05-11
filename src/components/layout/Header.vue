@@ -52,7 +52,6 @@
                 <!-- 下拉菜单 -->
                 <div class="dropdown-menu" v-show="showDropdown">
                     <div class="dropdown-item" @click="handleLogout">
-                        <LogoutIcon class="dropdown-icon" />
                         <span>退出登录</span>
                     </div>
                 </div>
@@ -65,14 +64,12 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { logout } from '@/api/user'
-import { message } from 'ant-design-vue'
 import LogoIcon from '@/assets/logo-brain.svg'
 import ClockIcon from '@/assets/icon-clock.svg'
 import AvatarIcon from '@/assets/icon-avatar.svg'
 import NoticeIcon from '@/assets/icon-notice.svg'
 import UserIcon from '@/assets/icon-user.svg'
 import TeamIcon from '@/assets/icon-user.svg'
-import LogoutIcon from '@/assets/icon-user.svg'
 
 // 定义emit
 const emit = defineEmits(['mode-change'])

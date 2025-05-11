@@ -10,6 +10,8 @@ import ArticleDetail from '@/views/ArticleDetail.vue'
 import Notes from '@/views/Notes.vue'
 import LongTermPlan from '@/views/LongTermPlan.vue'
 import DailyPlan from '@/views/DailyPlan.vue'
+import Editor from "@/views/Editor.vue"
+import Knowledge from '@/views/KnowledgeBase.vue'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -78,6 +80,16 @@ const router = createRouter({
             path: '/long-term-plan',
             name: 'LongTermPlan',
             component: LongTermPlan
+        },
+        {
+            path: '/editor',
+            name: 'Editor',
+            component: Editor
+        },
+        {
+            path: '/knowledge',
+            name: 'Knowledge',
+            component: Knowledge
         }
     ]
 })

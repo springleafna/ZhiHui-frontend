@@ -52,7 +52,7 @@
                       <a-button type="text" @click="editTask(item)">
                         <template #icon><EditOutlined /></template>
                       </a-button>
-                      <a-button type="text" @click="deleteTask(item.id)">
+                      <a-button type="text" @click="handleDeleteTask(item.id)">
                         <template #icon><DeleteOutlined /></template>
                       </a-button>
                     </div>
@@ -92,7 +92,7 @@
                       </div>
                     </div>
                     <div class="task-actions">
-                      <a-button type="text" @click="deleteTask(item.id)">
+                      <a-button type="text" @click="handleDeleteTask(item.id)">
                         <template #icon><DeleteOutlined /></template>
                       </a-button>
                     </div>
@@ -173,7 +173,7 @@
 
     <!-- 新建/编辑任务弹窗 -->
     <a-modal
-      v-model:visible="modalVisible"
+      v-model:open="modalVisible"
       :title="editingTask ? '编辑计划' : '新建计划'"
       @ok="handleModalOk"
       @cancel="handleModalCancel"
@@ -226,7 +226,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { 
   PlusOutlined, 
@@ -238,50 +238,22 @@ import {
   BulbOutlined
 } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
+import { 
+  saveDailyTask, 
+  getDailyTasks, 
+  completeTask, 
+  deleteTask, 
+  updateTask,
+  formatDate,
+  formatTime 
+} from '@/api/dailyTask'
 
 // 任务列表数据
-const tasks = ref([
-  {
-    id: 1,
-    title: '产品周会',
-    startTime: '09:00',
-    endTime: '10:00',
-    priority: '高',
-    completed: false,
-    description: '讨论下周产品迭代方案'
-  },
-  {
-    id: 2,
-    title: '设计评审',
-    startTime: '11:00',
-    endTime: '12:00',
-    priority: '中',
-    completed: false,
-    description: ''
-  },
-  {
-    id: 3,
-    title: '开发进度同步',
-    startTime: '14:00',
-    endTime: '15:00',
-    priority: '高',
-    completed: false,
-    description: ''
-  },
-  {
-    id: 4,
-    title: '用户调研报告',
-    startTime: '16:00',
-    endTime: '17:00',
-    priority: '低',
-    completed: true,
-    description: '整理本周用户反馈'
-  }
-])
+const tasks = ref([])
 
 // 计算属性：待办任务和已完成任务
-const todoTasks = computed(() => tasks.value.filter(task => !task.completed))
-const completedTasks = computed(() => tasks.value.filter(task => task.completed))
+const todoTasks = computed(() => tasks.value?.filter(task => !task.completed) || [])
+const completedTasks = computed(() => tasks.value?.filter(task => task.completed) || [])
 
 // 弹窗相关
 const modalVisible = ref(false)
@@ -315,79 +287,135 @@ const rules = {
   ]
 }
 
-// 显示新增弹窗
-const showAddModal = () => {
-  editingTask.value = null
-  taskForm.value = {
-    title: '',
-    startTime: null,
-    endTime: null,
-    priority: '中',
-    description: ''
+// 选中的日期
+const selectedDate = ref(dayjs())
+
+// 获取任务列表
+const fetchTasks = async (date) => {
+  try {
+    // 确保日期格式正确
+    const formattedDate = formatDate(date)
+    console.log('请求日期:', formattedDate) // 添加日志
+    const res = await getDailyTasks(formattedDate)
+    
+    if (!res) {
+      tasks.value = []
+      return
+    }
+    
+    // 处理已完成和未完成的任务
+    const completedTasks = (res.dailyTaskCompletedVOList || []).map(task => ({
+      ...task,
+      id: task.dailyTaskId, // 使用 dailyTaskId 作为 id
+      completed: true,
+      priority: getPriorityText(task.priority)
+    }))
+    
+    const notCompletedTasks = (res.dailyTaskNotCompletedVOList || []).map(task => ({
+      ...task,
+      id: task.dailyTaskId, // 使用 dailyTaskId 作为 id
+      completed: false,
+      priority: getPriorityText(task.priority)
+    }))
+    
+    // 合并所有任务
+    tasks.value = [...notCompletedTasks, ...completedTasks]
+    console.log('处理后的任务列表:', tasks.value) // 添加日志
+  } catch (error) {
+    console.error('获取任务列表失败:', error)
+    tasks.value = [] // 发生错误时清空任务列表
+    message.error('获取任务列表失败')
   }
-  modalVisible.value = true
 }
 
-// 编辑任务
-const editTask = (task) => {
-  editingTask.value = task
-  taskForm.value = {
-    title: task.title,
-    startTime: task.startTime ? dayjs(task.startTime, 'HH:mm') : null,
-    endTime: task.endTime ? dayjs(task.endTime, 'HH:mm') : null,
-    priority: task.priority,
-    description: task.description || ''
+// 优先级数字转文本
+const getPriorityText = (priority) => {
+  const priorityMap = {
+    0: '低',
+    1: '中',
+    2: '高'
   }
-  modalVisible.value = true
+  return priorityMap[priority] || '低'
+}
+
+// 优先级文本转数字
+const getPriorityNumber = (priority) => {
+  const priorityMap = {
+    '低': 0,
+    '中': 1,
+    '高': 2
+  }
+  return priorityMap[priority] || 0
 }
 
 // 删除任务
-const deleteTask = (taskId) => {
-  tasks.value = tasks.value.filter(task => task.id !== taskId)
-  message.success('删除成功')
-}
-
-// 完成/取消完成任务
-const handleTaskComplete = (taskId, completed) => {
-  const task = tasks.value.find(t => t.id === taskId)
-  if (task) {
-    task.completed = completed
+const handleDeleteTask = async (taskId) => {
+  try {
+    await deleteTask(taskId)
+    tasks.value = tasks.value.filter(task => task.id !== taskId)
+    message.success('任务删除成功')
+  } catch (error) {
+    console.error('删除任务失败:', error)
+    message.error('删除任务失败')
   }
 }
 
-// 处理弹窗确认
-const handleModalOk = () => {
-  taskFormRef.value.validate().then(() => {
+// 完成/取消完成任务
+const handleTaskComplete = async (taskId, completed) => {
+  try {
+    await completeTask(taskId)
+    const task = tasks.value.find(t => t.id === taskId)
+    if (task) {
+      task.completed = completed
+    }
+    message.success('任务状态更新成功')
+  } catch (error) {
+    console.error('更新任务状态失败:', error)
+    message.error('更新任务状态失败')
+  }
+}
+
+// 添加每日任务
+const handleModalOk = async () => {
+  try {
+    await taskFormRef.value.validate()
+    
     // 额外验证结束时间
     if (taskForm.value.endTime && taskForm.value.startTime) {
       if (taskForm.value.endTime.isBefore(taskForm.value.startTime)) {
-        message.error('结束时间必须在开始时间之后');
-        return;
+        message.error('结束时间必须在开始时间之后')
+        return
       }
     }
 
     const formData = {
       title: taskForm.value.title,
-      startTime: taskForm.value.startTime ? taskForm.value.startTime.format('HH:mm') : null,
-      endTime: taskForm.value.endTime ? taskForm.value.endTime.format('HH:mm') : null,
-      priority: taskForm.value.priority,
+      startTime: taskForm.value.startTime ? formatTime(taskForm.value.startTime) : null,
+      endTime: taskForm.value.endTime ? formatTime(taskForm.value.endTime) : null,
+      priority: getPriorityNumber(taskForm.value.priority),
       description: taskForm.value.description || '',
-      completed: false
+      taskDate: formatDate(selectedDate.value)
     }
 
     if (editingTask.value) {
-      Object.assign(editingTask.value, formData)
-      message.success('修改成功')
-    } else {
-      tasks.value.push({
-        id: Date.now(),
+      await updateTask({
+        dailyTaskId: editingTask.value.id,
         ...formData
       })
-      message.success('添加成功')
+      message.success('任务更新成功')
+    } else {
+      await saveDailyTask(formData)
+      message.success('任务创建成功')
     }
 
+    // 重新获取任务列表
+    await fetchTasks(selectedDate.value)
     modalVisible.value = false
-  })
+    taskFormRef.value?.resetFields()
+  } catch (error) {
+    console.error('保存任务失败:', error)
+    message.error('保存任务失败')
+  }
 }
 
 // 处理弹窗取消
@@ -412,9 +440,6 @@ const completionRate = computed(() => {
   return Math.round((completedTasks.value.length / tasks.value.length) * 100)
 })
 
-// 选中的日期
-const selectedDate = ref(dayjs())
-
 // 模拟某日期是否有任务
 const hasTasksOnDate = (date) => {
   // 这里可以根据实际数据判断，现在只是模拟
@@ -422,10 +447,18 @@ const hasTasksOnDate = (date) => {
 }
 
 // 日历日期选择
-const onCalendarSelect = (date) => {
+const onCalendarSelect = async (date) => {
   selectedDate.value = date
-  message.info(`查看 ${date.format('YYYY-MM-DD')} 的任务`)
+  const formattedDate = formatDate(date)
+  console.log('选择日期:', formattedDate) // 添加日志
+  await fetchTasks(date)
+  message.info(`查看 ${formattedDate} 的任务`)
 }
+
+// 组件挂载时获取任务列表
+onMounted(async () => {
+  await fetchTasks(selectedDate.value)
+})
 
 // AI建议
 const aiSuggestions = ref([
@@ -509,6 +542,32 @@ const disabledEndTime = (now) => {
     }
   };
 };
+
+// 显示新增弹窗
+const showAddModal = () => {
+  editingTask.value = null
+  taskForm.value = {
+    title: '',
+    startTime: null,
+    endTime: null,
+    priority: '中',
+    description: ''
+  }
+  modalVisible.value = true
+}
+
+// 编辑任务
+const editTask = (task) => {
+  editingTask.value = task
+  taskForm.value = {
+    title: task.title,
+    startTime: task.startTime ? dayjs(task.startTime, 'HH:mm') : null,
+    endTime: task.endTime ? dayjs(task.endTime, 'HH:mm') : null,
+    priority: task.priority,
+    description: task.description || ''
+  }
+  modalVisible.value = true
+}
 </script>
 
 <style scoped>
