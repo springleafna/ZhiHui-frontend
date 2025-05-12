@@ -303,19 +303,19 @@ const fetchTasks = async (date) => {
       return
     }
     
-    // 处理已完成和未完成的任务
+    // 处理已完成和未完成的任务时添加类型转换
     const completedTasks = (res.dailyTaskCompletedVOList || []).map(task => ({
-      ...task,
-      id: task.dailyTaskId, // 使用 dailyTaskId 作为 id
-      completed: true,
-      priority: getPriorityText(task.priority)
+        ...task,
+        id: task.dailyTaskId,
+        completed: task.completed === 1,  // 将数字转为布尔值
+        priority: getPriorityText(task.priority)
     }))
     
     const notCompletedTasks = (res.dailyTaskNotCompletedVOList || []).map(task => ({
-      ...task,
-      id: task.dailyTaskId, // 使用 dailyTaskId 作为 id
-      completed: false,
-      priority: getPriorityText(task.priority)
+        ...task,
+        id: task.dailyTaskId,
+        completed: task.completed === 1,  // 将数字转为布尔值
+        priority: getPriorityText(task.priority)
     }))
     
     // 合并所有任务
@@ -363,7 +363,8 @@ const handleDeleteTask = async (taskId) => {
 // 完成/取消完成任务
 const handleTaskComplete = async (taskId, completed) => {
   try {
-    await completeTask(taskId)
+    // 将布尔值转为数字 0/1
+    await completeTask(taskId, completed ? 1 : 0)
     const task = tasks.value.find(t => t.id === taskId)
     if (task) {
       task.completed = completed

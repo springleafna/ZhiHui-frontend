@@ -33,6 +33,7 @@ request.interceptors.response.use(
     if (res.code === 0) {
       return res.data // 成功时返回数据
     } else {
+      message.error(res.message)
       console.log(res.message || '操作失败')
     }
   },

@@ -45,11 +45,15 @@ export const getDailyTasks = async (date) => {
 /**
  * 标记任务为完成状态
  * @param {number} taskId - 任务ID
+ * @param {number} completed - 是否完成（1:完成 0:未完成）
  */
-export const completeTask = async (taskId) => {
+export const completeTask = async (taskId, completed) => {
   try {
-    const res = await request.put('/dailyTask/complete', {
-      params: { dailyTaskId: taskId }
+    const res = await request.put('/dailyTask/complete', null, {
+      params: { 
+        dailyTaskId: taskId,
+        completed: completed // 添加状态参数
+      }
     })
     return res
   } catch (err) {

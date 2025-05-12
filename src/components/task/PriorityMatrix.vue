@@ -3,29 +3,37 @@
         <!-- 紧急且重要 -->
         <div class="quadrant urgent-important">
             <QuadrantHeader title="紧急且重要" icon="❗" />
-            <TaskItem v-for="(task, index) in urgentImportantTasks" :key="index" :task="task"
-                @toggle="toggleTaskStatus('urgentImportant', index)" />
+            <div class="task-list">  <!-- 新增滚动容器 -->
+                <TaskItem v-for="(task, index) in urgentImportantTasks" :key="index" :task="task"
+                    @toggle="toggleTaskStatus('urgentImportant', index)" />
+            </div>
         </div>
 
         <!-- 紧急不重要 -->
         <div class="quadrant urgent-not-important">
             <QuadrantHeader title="紧急不重要" icon="⏳" />
-            <TaskItem v-for="(task, index) in urgentNotImportantTasks" :key="index" :task="task"
-                @toggle="toggleTaskStatus('urgentNotImportant', index)" />
+            <div class="task-list">  <!-- 新增滚动容器 -->
+                <TaskItem v-for="(task, index) in urgentNotImportantTasks" :key="index" :task="task"
+                    @toggle="toggleTaskStatus('urgentNotImportant', index)" />
+            </div>
         </div>
 
         <!-- 重要不紧急 -->
         <div class="quadrant important-not-urgent">
             <QuadrantHeader title="重要不紧急" icon="⭐" />
-            <TaskItem v-for="(task, index) in importantNotUrgentTasks" :key="index" :task="task"
-                @toggle="toggleTaskStatus('importantNotUrgent', index)" />
+            <div class="task-list">  <!-- 新增滚动容器 -->
+                <TaskItem v-for="(task, index) in importantNotUrgentTasks" :key="index" :task="task"
+                    @toggle="toggleTaskStatus('importantNotUrgent', index)" />
+            </div>
         </div>
 
         <!-- 不紧急不重要 -->
         <div class="quadrant not-urgent-not-important">
             <QuadrantHeader title="不紧急不重要" icon="📌" />
-            <TaskItem v-for="(task, index) in notUrgentNotImportantTasks" :key="index" :task="task"
-                @toggle="toggleTaskStatus('notUrgentNotImportant', index)" />
+            <div class="task-list">  <!-- 新增滚动容器 -->
+                <TaskItem v-for="(task, index) in notUrgentNotImportantTasks" :key="index" :task="task"
+                    @toggle="toggleTaskStatus('notUrgentNotImportant', index)" />
+            </div>
         </div>
     </div>
 </template>
@@ -38,6 +46,12 @@ import TaskItem from './TaskItem.vue'
 // 任务状态管理
 const tasks = reactive({
     urgentImportant: [
+        {
+            title: '完成项目提案',
+            desc: '撰写并提交季度项目提案文档',
+            time: '今天18:00',
+            completed: false
+        },
         {
             title: '完成项目提案',
             desc: '撰写并提交季度项目提案文档',
@@ -134,4 +148,37 @@ const toggleTaskStatus = (category, index) => {
 }
 
 /* 浅灰色 */
+</style>
+
+<style scoped>
+/* 新增滚动容器样式 */
+.task-list {
+    overflow-y: auto;
+    height: calc(100% - 60px); /* 留出Header空间 */
+    padding-right: 8px;
+}
+
+/* 自定义滚动条 */
+.task-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.task-list::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.1);
+    border-radius: 3px;
+}
+
+.task-list::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.2);
+    border-radius: 3px;
+}
+
+/* 调整象限容器高度 */
+.quadrant {
+    padding: 20px;
+    border-radius: 12px;
+    height: 400px; /* 固定高度 */
+    display: flex;
+    flex-direction: column;
+}
 </style>
