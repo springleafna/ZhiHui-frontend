@@ -1,17 +1,20 @@
 <template>
   <div class="dashboard-container">
-    <!-- 第一行 -->
     <div class="dashboard-row">
-      <!-- 快速笔记 -->
+      <!-- 便签 -->
       <div class="dashboard-card quick-note">
         <div class="card-header">
-          <h2>快速笔记</h2>
-          <div class="publish-btn">
+          <h2>便签</h2>
+          <div class="publish-btn" @click="handlePublishMemo">
             发布
           </div>
         </div>
         <div class="card-content">
-          <textarea placeholder="记录灵感..." class="note-input"></textarea>
+          <textarea 
+            v-model="memoContent" 
+            placeholder="记录灵感..." 
+            class="note-input"
+          ></textarea>
         </div>
       </div>
 
@@ -88,41 +91,53 @@
             </div>
             <div class="stat-item">
               <div class="stat-value">8</div>
-              <div class="stat-label">思维导图</div>
+              <div class="stat-label">今日任务数</div>
             </div>
             <div class="stat-item">
               <div class="stat-value">64</div>
-              <div class="stat-label">知识卡片</div>
+              <div class="stat-label">长期任务数</div>
+            </div>
+          </div>
+          <div class="stats-container second-row">
+            <div class="stat-item">
+              <div class="stat-value">15</div>
+              <div class="stat-label">便签数量</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">24</div>
+              <div class="stat-label">象限任务数</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">48</div>
+              <div class="stat-label">知识库数</div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 第二行 -->
     <div class="dashboard-row">
-      <!-- 快速笔记列表 -->
+      <!-- 便签列表 -->
       <div class="dashboard-card todo-list">
         <div class="card-header">
-          <h2>我的快速笔记</h2>
-          <div class="icon-btn"><i class="iconfont icon-plus"></i></div>
+          <h2>我的便签</h2>
+          <div class="icon-btn"><i class="iconfont icon-refresh" @click="fetchMemoList"></i></div>
         </div>
         <div class="card-content">
-          <div class="todo-items">
-            <div class="todo-item">
-              <div class="todo-indicator completed"></div>
-              <div class="todo-content">完成论文初稿</div>
-              <div class="todo-star"><i class="iconfont icon-star"></i></div>
-            </div>
-            <div class="todo-item">
-              <div class="todo-indicator inprogress"></div>
-              <div class="todo-content">复习考试重点</div>
-              <div class="todo-star"><i class="iconfont icon-star"></i></div>
-            </div>
-            <div class="todo-item">
-              <div class="todo-indicator pending"></div>
-              <div class="todo-content">整理学习笔记</div>
-              <div class="todo-star"><i class="iconfont icon-star"></i></div>
+          <div class="memo-items">
+            <template v-if="memoList.length > 0">
+              <div v-for="memo in memoList" :key="memo.memoId" class="memo-item">
+                <div class="memo-indicator" :style="{ backgroundColor: getRandomColor(memo.memoId) }"></div>
+                <div class="memo-content" @click="openMemoDialog(memo)">{{ truncateText(memo.content) }}</div>
+                <div class="memo-time">{{ formatTime(memo.updateTime) }}</div>
+                <div class="memo-delete" @click.stop="handleDeleteMemo(memo.memoId)">
+                  <i class="iconfont icon-delete"></i>
+                </div>
+              </div>
+            </template>
+            <div v-else class="empty-state">
+              <i class="iconfont icon-empty"></i>
+              <p>您还没有添加便签哦~</p>
             </div>
           </div>
         </div>
@@ -280,11 +295,145 @@
         </div>
       </div>
     </div>
+
+    <!-- 笔记详情弹窗 -->
+    <a-modal
+      v-model:open="memoDialogVisible"
+      title="笔记详情"
+      @ok="handleUpdateMemo"
+      @cancel="closeMemoDialog"
+      okText="保存"
+      cancelText="取消"
+    >
+      <textarea 
+        v-model="editingMemo.content" 
+        class="memo-edit-input"
+        placeholder="编辑笔记内容..."
+      ></textarea>
+    </a-modal>
   </div>
 </template>
 
 <script setup>
-// 可以添加业务逻辑
+import { ref, onMounted } from 'vue'
+import { insertMemo, getMemoList, updateMemo, deleteMemo } from '@/api/memo'
+import { message } from 'ant-design-vue'
+
+// 快速笔记内容
+const memoContent = ref('')
+// 笔记列表
+const memoList = ref([])
+// 弹窗显示控制
+const memoDialogVisible = ref(false)
+// 正在编辑的笔记
+const editingMemo = ref({
+  memoId: null,
+  content: ''
+})
+
+// 颜色数组
+const colors = [
+  '#52c41a', // 绿色
+  '#1890ff', // 蓝色
+  '#faad14', // 黄色
+  '#722ed1', // 紫色
+  '#eb2f96', // 粉色
+  '#fa541c', // 橙色
+]
+
+// 获取随机颜色
+const getRandomColor = (id) => {
+  return colors[id % colors.length]
+}
+
+// 截断文本
+const truncateText = (text) => {
+  return text.length > 50 ? text.substring(0, 50) + '...' : text
+}
+
+// 格式化时间
+const formatTime = (time) => {
+  if (!time) return ''
+  const date = new Date(time)
+  return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`
+}
+
+// 获取笔记列表
+const fetchMemoList = async () => {
+  try {
+    const res = await getMemoList()
+    memoList.value = res || []
+  } catch (error) {
+    console.error('获取笔记列表失败:', error)
+  }
+}
+
+// 打开笔记弹窗
+const openMemoDialog = (memo) => {
+  editingMemo.value = { ...memo }
+  memoDialogVisible.value = true
+}
+
+// 关闭笔记弹窗
+const closeMemoDialog = () => {
+  memoDialogVisible.value = false
+  editingMemo.value = { memoId: null, content: '' }
+}
+
+// 更新笔记
+const handleUpdateMemo = async () => {
+  if (!editingMemo.value.content.trim()) {
+    message.warning('笔记内容不能为空')
+    return
+  }
+
+  try {
+    await updateMemo({
+      memoId: editingMemo.value.memoId,
+      content: editingMemo.value.content.trim()
+    })
+    message.success('更新成功')
+    memoDialogVisible.value = false
+    fetchMemoList() // 刷新列表
+  } catch (error) {
+    console.error('更新笔记失败:', error)
+  }
+}
+
+// 发布快速笔记
+const handlePublishMemo = async () => {
+  if (!memoContent.value.trim()) {
+    message.warning('请输入笔记内容')
+    return
+  }
+
+  try {
+    await insertMemo({
+      content: memoContent.value.trim()
+    })
+    message.success('发布成功')
+    memoContent.value = ''
+    fetchMemoList() // 刷新列表
+  } catch (error) {
+    console.error('发布笔记失败:', error)
+  }
+}
+
+// 删除笔记
+const handleDeleteMemo = async (memoId) => {
+  try {
+    await deleteMemo(memoId)
+    message.success('删除成功')
+    fetchMemoList() // 刷新列表
+  } catch (error) {
+    console.error('删除笔记失败:', error)
+  }
+}
+
+// 页面加载时获取笔记列表
+onMounted(() => {
+  fetchMemoList()
+})
 </script>
 
 <style scoped>
@@ -453,6 +602,12 @@
   margin-top: 10px;
 }
 
+.stats-container.second-row {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
 .stat-item {
   text-align: center;
 }
@@ -468,48 +623,109 @@
   color: #666;
 }
 
-/* 待办事项 */
-.todo-items {
+/* 笔记列表样式 */
+.memo-items {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
-.todo-item {
+/* 自定义滚动条样式 */
+.memo-items::-webkit-scrollbar {
+  width: 4px;
+}
+
+.memo-items::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;
+}
+
+.memo-items::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 2px;
+}
+
+.memo-items::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+.memo-item {
   display: flex;
   align-items: center;
-  padding: 10px;
+  padding: 12px;
   border-radius: 8px;
   background-color: #f9f9f9;
+  transition: all 0.3s;
 }
 
-.todo-indicator {
-  width: 10px;
-  height: 10px;
+.memo-item:hover {
+  background-color: #f0f0f0;
+}
+
+.memo-indicator {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   margin-right: 12px;
+  flex-shrink: 0;
 }
 
-.todo-indicator.completed {
-  background-color: #52c41a;
-}
-
-.todo-indicator.inprogress {
-  background-color: #faad14;
-}
-
-.todo-indicator.pending {
-  background-color: #1890ff;
-}
-
-.todo-content {
+.memo-content {
   flex: 1;
   font-size: 14px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
-.todo-star {
-  color: #faad14;
+.memo-time {
+  font-size: 12px;
+  color: #999;
+  margin-left: 12px;
+}
+
+.memo-delete {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff4d4f;
   cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.memo-item:hover .memo-delete {
+  opacity: 1;
+}
+
+.memo-delete:hover {
+  background-color: rgba(255, 77, 79, 0.1);
+  border-radius: 50%;
+}
+
+/* 弹窗样式 */
+.memo-edit-input {
+  width: 100%;
+  height: 200px;
+  padding: 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  resize: none;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.memo-edit-input:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
 }
 
 /* 工作区 */
@@ -761,5 +977,25 @@
 
 .app-container {
   background-color: #f8faff;
+}
+
+/* 便签列表空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  color: #999;
+}
+
+.empty-state .iconfont {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-state p {
+  font-size: 14px;
+  margin: 0;
 }
 </style> 

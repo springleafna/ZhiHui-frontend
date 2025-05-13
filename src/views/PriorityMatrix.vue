@@ -177,7 +177,7 @@ const toggleTaskStatus = (category, index) => {
 .quadrant {
     padding: 20px;
     border-radius: 12px;
-    height: 400px; /* 固定高度 */
+    height: 360px; /* 固定高度 */
     display: flex;
     flex-direction: column;
 }

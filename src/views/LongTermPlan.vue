@@ -241,7 +241,7 @@
                         <h3>描述</h3>
                         <a-textarea 
                             v-model:value="selectedTask.description" 
-                            :rows="4" 
+                            :rows="10" 
                             placeholder="添加任务描述..."
                         />
                     </div>
