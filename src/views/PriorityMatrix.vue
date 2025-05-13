@@ -40,8 +40,8 @@
 
 <script setup>
 import { reactive, computed } from 'vue'
-import QuadrantHeader from './QuadrantHeader.vue'
-import TaskItem from './TaskItem.vue'
+import QuadrantHeader from '@/components/task/QuadrantHeader.vue'
+import TaskItem from '@/components/task/TaskItem.vue'
 
 // 任务状态管理
 const tasks = reactive({

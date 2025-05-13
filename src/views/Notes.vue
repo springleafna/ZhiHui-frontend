@@ -2,143 +2,101 @@
     <div class="notes-container">
         <!-- 左侧筛选区 -->
         <div class="filter-panel">
-            <div class="data-section">
-                <h3>笔记元数据</h3>
-                <div class="data-item">
-                    <div class="data-label">思维密度</div>
-                    <div class="progress-bar">
-                        <div class="progress" style="width: 78%"></div>
-                        <span class="progress-text">78%</span>
+            <div class="category-section">
+                <h3 class="section-title">笔记分类</h3>
+                <div class="category-list">
+                    <div 
+                        class="category-item" 
+                        v-for="category in categories" 
+                        :key="category.value"
+                        :class="{ active: currentCategory === category.value }"
+                        @click="currentCategory = category.value">
+                        <i class="icon-folder"></i>
+                        <span class="label">{{ category.label }}</span>
+                        <span class="count">{{ category.count }}</span>
                     </div>
                 </div>
-                <div class="data-item">
-                    <div class="data-label">关联强度</div>
-                    <div class="progress-bar">
-                        <div class="progress" style="width: 64%"></div>
-                        <span class="progress-text">64%</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="curve-section">
-                <h3>认知能量曲线</h3>
-                <div class="curve-chart">
-                    <!-- 这里可以使用echarts等图表库实现曲线图 -->
-                </div>
-            </div>
-
-            <div class="tags-section">
-                <h3>标签筛选</h3>
-                <div class="tags-grid">
-                    <span class="tag">AI</span>
-                    <span class="tag">伦理学</span>
-                    <span class="tag">心理学</span>
-                    <span class="tag">认知科学</span>
-                    <span class="tag">设计</span>
-                    <span class="tag">创新</span>
-                    <span class="tag">知识管理</span>
-                    <span class="tag">效率</span>
-                    <span class="tag">教育</span>
-                    <span class="tag">未来科技</span>
-                    <span class="tag">系统思维</span>
-                    <span class="tag">方法论</span>
-                </div>
-            </div>
-
-            <div class="content-type-section">
-                <h3>内容形态</h3>
-                <div class="type-grid">
-                    <div class="type-item active">
-                        <i class="icon-layers"></i>
-                        <span>全部</span>
-                    </div>
-                    <div class="type-item">
-                        <i class="icon-file-text"></i>
-                        <span>文字</span>
-                    </div>
-                    <div class="type-item">
-                        <i class="icon-image"></i>
-                        <span>脑图</span>
-                    </div>
-                    <div class="type-item">
-                        <i class="icon-film"></i>
-                        <span>多媒体</span>
-                    </div>
+                
+                <div class="category-actions">
+                    <a-button 
+                        type="primary" 
+                        block
+                        @click="showAddDialog = true"
+                        class="action-btn">
+                        <template #icon><i class="icon-plus"></i></template>
+                        新建分类
+                    </a-button>
                 </div>
             </div>
         </div>
 
         <!-- 中间笔记列表 -->
         <div class="notes-list">
-            <div class="note-item" v-for="note in notes" :key="note.id">
+            <div 
+                class="note-item" 
+                v-for="note in filteredNotes" 
+                :key="note.id">
                 <div class="note-icon">
                     <i class="icon-file-text"></i>
                 </div>
                 <div class="note-content">
                     <h3 class="note-title">{{ note.title }}</h3>
                     <div class="note-meta">
-                        <span class="note-category">{{ note.category }}</span>
                         <span class="note-path">{{ note.path }}</span>
+                        <span class="note-time">{{ note.time }}</span>
                     </div>
-                    <div class="note-time">{{ note.time }}</div>
                 </div>
             </div>
         </div>
 
         <!-- 右侧快速操作区 -->
-        <div class="quick-actions">
-            <div class="action-section">
-                <button class="action-button voice" @click="goToEditor()">
-                    <i class="icon-mic"></i>
-                    <span>开始创作</span>
-                </button>
-                <h3>快速记录</h3>
-                <button class="action-button voice">
+    <div class="quick-actions">
+        <div class="action-section">
+            <button class="action-button primary" @click="goToEditor">
+                <i class="icon-edit"></i>
+                <span>开始创作</span>
+            </button>
+        </div>
+
+        <div class="action-section">
+            <h3 class="section-title">快速记录</h3>
+            <div class="quick-grid">
+                <button class="quick-button">
                     <i class="icon-mic"></i>
                     <span>语音速记</span>
                 </button>
-                <button class="action-button image">
+                <button class="quick-button">
                     <i class="icon-camera"></i>
                     <span>图片描述</span>
                 </button>
             </div>
+        </div>
 
-            <div class="action-section">
-                <h3>认知梯度</h3>
-                <button class="action-button reorganize">
-                    <i class="icon-shuffle"></i>
-                    <span>重组洞察</span>
+        <div class="action-section">
+            <h3 class="section-title">导出格式</h3>
+            <div class="export-grid">
+                <button class="export-button">
+                    <i class="icon-file-pdf"></i>
+                    <span>PDF</span>
+                </button>
+                <button class="export-button">
+                    <i class="icon-image"></i>
+                    <span>图片</span>
+                </button>
+                <button class="export-button">
+                    <i class="icon-share"></i>
+                    <span>分享</span>
                 </button>
             </div>
-
-            <div class="action-section">
-                <h3>导出中心</h3>
-                <div class="export-grid">
-                    <button class="export-button">
-                        <i class="icon-file-pdf"></i>
-                        <span>PDF</span>
-                    </button>
-                    <button class="export-button">
-                        <i class="icon-image"></i>
-                        <span>图片</span>
-                    </button>
-                    <button class="export-button">
-                        <i class="icon-share2"></i>
-                        <span>分享</span>
-                    </button>
-                    <button class="export-button">
-                        <i class="icon-code"></i>
-                        <span>HTML</span>
-                    </button>
-                </div>
-            </div>
         </div>
+    </div>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { message, Modal } from 'ant-design-vue'
 
 // 初始化路由
 const router = useRouter()
@@ -177,254 +135,283 @@ const notes = ref([
 const goToEditor = () => {
     router.push('/editor')
 }
+
+const categories = ref([
+    { label: '全部笔记', value: '全部', count: 4 },
+    { label: '默认知识库', value: '默认', count: 4 },
+    { label: '个人笔记', value: '个人', count: 0 },
+    { label: '工作笔记', value: '工作', count: 0 },
+    { label: '学习笔记', value: '学习', count: 0 }
+])
+
+const currentCategory = ref('全部')
+
+const filteredNotes = computed(() => {
+    if (currentCategory.value === '全部') return notes.value
+    return notes.value.filter(note => note.category === currentCategory.value)
+})
+
+const showAddDialog = ref(false)
+const newCategoryForm = ref({
+    name: ''
+})
+
+const addCategory = () => {
+    if (!newCategoryForm.value.name.trim()) {
+        message.warning('分类名称不能为空')
+        return
+    }
+    
+    const exists = categories.value.some(c => c.label === newCategoryForm.value.name)
+    if (exists) {
+        message.warning('该分类已存在')
+        return
+    }
+
+    categories.value.push({
+        label: newCategoryForm.value.name,
+        value: newCategoryForm.value.name,
+        count: 0
+    })
+    
+    showAddDialog.value = false
+    newCategoryForm.value.name = ''
+}
+
+const handleDelete = async () => {
+    Modal.confirm({
+        title: '删除确认',
+        content: `确认删除分类 "${currentCategory.value}" 吗？`,
+        okType: 'danger',
+        onOk: () => {
+            const index = categories.value.findIndex(c => c.value === currentCategory.value)
+            if (index > -1) {
+                categories.value.splice(index, 1)
+                currentCategory.value = '全部'
+            }
+        }
+    })
+}
 </script>
 
 <style scoped>
 .notes-container {
     display: flex;
-    height: 100%;
-    background-color: var(--el-bg-color);
-    padding: 0;
-    gap: 20px;
-    margin: 0;
+    height: 100vh;
+    gap: 16px;
+    padding: 24px;
+    background: #f8f9fa;
 }
 
-.filter-panel, .notes-list, .quick-actions {
-    margin-top: 20px;
-    margin-bottom: 20px;
+/* 统一边距和圆角 */
+.filter-panel, 
+.notes-list, 
+.quick-actions {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
 }
 
 .filter-panel {
-    margin-left: 20px;
-    width: 280px;
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
+    width: 260px;
+    flex-shrink: 0;
 }
 
-.data-section, .curve-section, .tags-section, .content-type-section {
-    padding-bottom: 20px;
-    border-bottom: 1px solid #ebeef5;
-}
-
-h3 {
-    font-size: 16px;
-    color: #303133;
-    margin-bottom: 16px;
-    font-weight: 500;
-}
-
-.data-item {
-    margin-bottom: 12px;
-}
-
-.data-label {
-    font-size: 14px;
-    color: #606266;
-    margin-bottom: 8px;
-}
-
-.progress-bar {
-    height: 6px;
-    background: #e4e7ed;
-    border-radius: 3px;
-    position: relative;
-}
-
-.progress {
-    height: 100%;
-    background: #1890ff;
-    border-radius: 3px;
-}
-
-.progress-text {
-    position: absolute;
-    right: 0;
-    top: -20px;
-    font-size: 12px;
-    color: #909399;
-}
-
-.curve-chart {
-    height: 200px;
-    background: #f5f7fa;
-    border-radius: 8px;
-}
-
-.tags-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.tag {
-    padding: 6px 12px;
-    background: #f5f7fa;
-    border-radius: 4px;
-    font-size: 12px;
-    color: #606266;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.tag:hover {
-    background: #e6f7ff;
-    color: #1890ff;
-}
-
-.type-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    width: 100%;
-}
-
-.type-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px;
-    background: #f5f7fa;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 14px;
-}
-
-.type-item i {
-    font-size: 16px;
-}
-
-.type-item span {
-    white-space: nowrap;
-}
-
-.type-item.active {
-    background: #e6f7ff;
-    color: #1890ff;
-}
-
-/* 中间笔记列表样式 */
 .notes-list {
     flex: 1;
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    overflow-y: auto;
+    min-width: 400px;
 }
 
+.quick-actions {
+    width: 240px;
+    flex-shrink: 0;
+}
+
+.section-title {
+    font-size: 15px;
+    color: #1a1a1a;
+    margin: 0 0 16px;
+    font-weight: 600;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+/* 分类列表样式优化 */
+.category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 20px;
+}
+
+.category-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #666;
+    
+    &:hover {
+        background: #f5f7fa;
+    }
+    
+    &.active {
+        background: #e6f4ff;
+        color: #1677ff;
+        
+        .count {
+            background: rgba(22,119,255,0.1);
+            color: #1677ff;
+        }
+    }
+}
+
+.icon-folder {
+    margin-right: 12px;
+    font-size: 18px;
+}
+
+.count {
+    margin-left: auto;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    background: #f5f5f5;
+}
+
+/* 笔记列表优化 */
 .note-item {
     display: flex;
     align-items: center;
     padding: 16px;
-    border-bottom: 1px solid #ebeef5;
+    border-radius: 8px;
     transition: all 0.2s;
-}
-
-.note-item:hover {
-    background: #f5f7fa;
+    margin-bottom: 8px;
+    
+    &:hover {
+        background: #fafafa;
+        transform: translateX(4px);
+    }
 }
 
 .note-icon {
-    width: 40px;
-    height: 40px;
-    background: #e6f7ff;
-    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    background: #f5f5f5;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #1890ff;
+    color: #666;
     margin-right: 16px;
 }
 
-.note-content {
-    flex: 1;
-}
-
 .note-title {
-    font-size: 16px;
-    color: #303133;
-    margin-bottom: 8px;
-    font-weight: normal;
+    font-size: 15px;
+    color: #1a1a1a;
+    margin: 0 0 4px;
 }
 
 .note-meta {
-    font-size: 14px;
-    color: #909399;
-}
-
-.note-category {
-    margin-right: 8px;
-}
-
-.note-time {
-    font-size: 14px;
-    color: #909399;
-    margin-top: 4px;
-}
-
-/* 右侧快速操作区样式 */
-.quick-actions {
-    margin-right: 20px;
-    width: 280px;
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
     display: flex;
-    flex-direction: column;
-    gap: 24px;
+    gap: 12px;
+    font-size: 12px;
+    color: #999;
 }
 
+/* 按钮样式统一 */
 .action-button {
     width: 100%;
     padding: 12px;
     border: none;
     border-radius: 8px;
-    background: #1890ff;
-    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     cursor: pointer;
-    margin-bottom: 12px;
     transition: all 0.2s;
+    
+    &.primary {
+        background: #1677ff;
+        color: white;
+        
+        &:hover {
+            background: #4096ff;
+        }
+    }
 }
 
-.action-button:hover {
-    background: #40a9ff;
+/* 右侧操作区优化 */
+.quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
-.export-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+.action-section {
+    display: flex;
+    flex-direction: column;
     gap: 12px;
 }
 
-.export-button {
+/* 快速记录网格 */
+.quick-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+/* 导出格式网格 */
+.export-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+/* 按钮样式优化 */
+.quick-button, .export-button {
+    height: 80px;
     padding: 12px;
-    border: 1px solid #dcdfe6;
+    border: 1px solid #f0f0f0;
     border-radius: 8px;
     background: white;
-    color: #606266;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    cursor: pointer;
+    justify-content: center;
     transition: all 0.2s;
 }
 
-.export-button:hover {
-    background: #f5f7fa;
-    border-color: #c0c4cc;
+.export-button {
+    height: auto;
+    padding: 10px;
+    flex-direction: row;
+    gap: 8px;
 }
 
-/* 图标样式 */
-[class^="icon-"] {
-    font-size: 20px;
+.quick-button:hover, .export-button:hover {
+    border-color: #1677ff;
+    box-shadow: 0 2px 8px rgba(22, 119, 255, 0.1);
+    transform: translateY(-2px);
 }
-</style> 
+
+.quick-button i {
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.export-button i {
+    font-size: 16px;
+}
+
+/* 主操作按钮优化 */
+.action-button.primary {
+    height: 48px;
+    font-size: 15px;
+    box-shadow: 0 2px 8px rgba(22, 119, 255, 0.2);
+}
+</style>
