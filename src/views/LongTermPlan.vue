@@ -322,7 +322,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { 
     PlusOutlined, 
     DeleteOutlined, 
@@ -330,6 +330,7 @@ import {
     EditOutlined
 } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
+import { listAllLongTermTask } from '@/api/longTermTask'
 
 // 当前激活的任务组
 const activeTaskGroup = ref('1')
@@ -362,30 +363,6 @@ const newTask = reactive({
     description: '',
     completed: false
 })
-
-// 示例数据
-const taskGroups = ref([
-    {
-        key: '1',
-        title: '学习',
-        categories: [
-            {
-                key: '1',
-                title: '课程学习',
-                tasks: [
-                    {
-                        id: '1',
-                        title: '完成高等数学第三章习题',
-                        priority: 'high',
-                        dueDate: '2024-02-20',
-                        progress: 75,
-                        completed: false
-                    }
-                ]
-            }
-        ]
-    }
-])
 
 // 删除相关的状态
 const deleteModalVisible = ref(false)
@@ -651,6 +628,37 @@ const getCompletionRate = () => {
     if (total === 0) return 0
     return Math.round((getCompletedTasks() / total) * 100)
 }
+
+// 定义任务组状态
+const taskGroups = ref([])
+
+// 挂载时获取数据
+onMounted(async () => {
+    try {
+        const res = await listAllLongTermTask()
+        if (res) {
+            taskGroups.value = res.map(group => ({
+                key: group.groupId.toString(),
+                title: group.groupName,
+                categories: group.categoryTaskVOList.map(category => ({
+                    key: category.categoryId.toString(),
+                    title: category.categoryName,
+                    tasks: category.longTermTaskDTOList.map(task => ({
+                        id: task.longTerTaskId.toString(),
+                        title: task.taskName,
+                        priority: task.priority === 0 ? 'low' : task.priority === 1 ? 'medium' : 'high',
+                        dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : null,
+                        description: task.description,
+                        completed: task.completed === 1
+                    }))
+                }))
+            }))
+        }
+    } catch (err) {
+        console.error('加载长期任务失败:', err)
+        message.error('加载长期任务失败')
+    }
+})
 </script>
 
 <style scoped>
@@ -849,4 +857,4 @@ const getCompletionRate = () => {
 .task-list-item.completed {
     opacity: 0.8;
 }
-</style> 
+</style>
