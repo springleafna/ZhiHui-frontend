@@ -30,7 +30,6 @@
                             <span class="tab-title">
                                 {{ group.title }}
                                 <DeleteOutlined 
-                                    v-if="taskGroups.length > 1"
                                     class="delete-icon"
                                     @click.stop="confirmDeleteGroup(group)" 
                                 />
@@ -490,16 +489,34 @@ const handleAddGroup = () => {
 
 // 确认删除任务组
 const confirmDeleteGroup = (group) => {
-    deleteConfirmMessage.value = `确定要删除任务组"${group.title}"吗？这将删除该组下的所有任务类别和任务。`
-    deleteCallback.value = () => {
-        const index = taskGroups.value.findIndex(g => g.key === group.key)
-        if (index !== -1) {
-            taskGroups.value.splice(index, 1)
-            message.success('删除任务组成功')
+    deleteConfirmMessage.value = `确定要删除任务组"${group.title}"吗？这将删除该组下的所有任务类及任务。`;
+    deleteCallback.value = () => handleDeleteGroup(group);
+    deleteModalVisible.value = true;
+};
+
+// 处理删除任务组
+const handleDeleteGroup = (group) => {
+    try {
+        // 过滤掉要删除的任务组
+        taskGroups.value = taskGroups.value.filter(g => g.key !== group.key);
+        
+        // 如果当前激活的任务组被删除，切换到第一个任务组或清空
+        if (activeTaskGroup.value === group.key) {
+            if (taskGroups.value.length > 0) {
+                activeTaskGroup.value = taskGroups.value[0].key;
+            } else {
+                activeTaskGroup.value = '';
+            }
         }
+        
+        message.success('任务组删除成功');
+    } catch (error) {
+        console.error('删除任务组失败:', error);
+        message.error('删除任务组失败');
     }
-    deleteModalVisible.value = true
-}
+    deleteModalVisible.value = false;
+};
+
 
 // 确认删除任务类别
 const confirmDeleteCategory = (group, category) => {
@@ -856,5 +873,16 @@ onMounted(async () => {
 
 .task-list-item.completed {
     opacity: 0.8;
+}
+.delete-icon {
+    margin-left: 8px;
+    cursor: pointer;
+    color: #ff4d4f;
+    opacity: 1; /* 确保图标可见 */
+    font-size: 16px; /* 设置图标大小 */
+}
+
+.delete-icon:hover {
+    opacity: 1;
 }
 </style>

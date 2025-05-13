@@ -200,7 +200,6 @@ const handleDelete = async () => {
     height: 100vh;
     gap: 16px;
     padding: 24px;
-    background: #f8f9fa;
 }
 
 /* 统一边距和圆角 */

@@ -143,7 +143,10 @@
             <template #dateCell="{ current }">
               <div class="date-cell">
                 <span>{{ current.date() }}</span>
-                <div v-if="hasTasksOnDate(current)" class="task-indicator"></div>
+                <div 
+                  v-if="getTaskStatusOnDate(current)" 
+                  :class="['task-indicator', getTaskStatusOnDate(current)]"
+                ></div>
               </div>
             </template>
           </a-calendar>
@@ -441,10 +444,16 @@ const completionRate = computed(() => {
   return Math.round((completedTasks.value.length / tasks.value.length) * 100)
 })
 
-// 模拟某日期是否有任务
-const hasTasksOnDate = (date) => {
-  // 这里可以根据实际数据判断，现在只是模拟
-  return Math.random() > 0.7
+// 获取某日期的任务状态
+const getTaskStatusOnDate = (date) => {
+  // 这里需要根据实际数据判断，目前先模拟
+  const formattedDate = formatDate(date);
+  const tasksOnDate = tasks.value.filter(task => formatDate(dayjs(task.taskDate)) === formattedDate);
+  if (tasksOnDate.length === 0) {
+    return null;
+  }
+  const allCompleted = tasksOnDate.every(task => task.completed);
+  return allCompleted ? 'all-completed' : 'not-all-completed';
 }
 
 // 日历日期选择
@@ -757,17 +766,50 @@ const editTask = (task) => {
   position: relative;
   height: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
 .task-indicator {
   position: absolute;
-  bottom: 2px;
-  width: 4px;
-  height: 4px;
+  bottom: 4px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background-color: #1890ff;
+  transition: all 0.3s;
+}
+
+.task-indicator.all-completed {
+  background-color: #52c41a; /* 绿色 */
+}
+
+.task-indicator.not-all-completed {
+  background-color: #ff4d4f; /* 红色 */
+}
+
+/* 优化日历头部选择器样式，让年月日对齐 */
+.calendar-card :deep(.ant-picker-header) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.calendar-card :deep(.ant-picker-header-view) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-card :deep(.ant-picker-header-view button) {
+  display: flex;
+  align-items: center;
+}
+
+/* 鼠标悬停在有任务的日期上时的样式 */
+.date-cell:hover .task-indicator {
+  transform: scale(1.2);
+  background-color: #40a9ff;
 }
 
 .ai-assistant-card {

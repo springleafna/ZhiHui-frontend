@@ -47,15 +47,15 @@ html, body {
   padding: 0;
   height: 100%;
   overflow: hidden; /* 防止body滚动 */
+  background-color: #f5f9ff;
 }
 
-/* 隐藏所有滚动条，仅在需要处显示自定义滚动条 */
+/* 滚动条样式 */
 ::-webkit-scrollbar {
   width: 0px;
   background: transparent;
 }
 
-/* 只在主要内容区域显示自定义滚动条 */
 .main-content::-webkit-scrollbar {
   width: 8px;
 }
@@ -63,7 +63,6 @@ html, body {
 .main-content::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 10px;
-  /* 调整底部内边距，确保滚动条在底部可见 */
   margin-bottom: 10px;
 }
 
@@ -75,6 +74,43 @@ html, body {
 .main-content::-webkit-scrollbar-thumb:hover {
   background: #999;
 }
+
+/* 应用容器样式 */
+.app-container {
+  display: flex;
+  width: 100%;
+  position: relative;
+  background-color: #f5f9ff;
+}
+
+.app-container {
+  height: calc(100vh - 60px);
+  margin-top: 40px;
+}
+
+.app-container.no-layout {
+  height: 100vh;
+  margin-top: 0;
+}
+
+/* 主内容区域样式 */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  background-color: #f5f9ff;
+  margin-left: 74px;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 20px 0 50px 0;
+  position: relative;
+}
+
+.main-content.sidebar-expanded {
+  margin-left: 240px;
+}
+
+.main-content.no-margin {
+  margin-left: 0;
+}
 </style>
 
 <style scoped>
@@ -83,7 +119,7 @@ html, body {
   height: calc(100vh - 60px); /* Header高度为60px */
   width: 100%;
   position: relative;
-  margin-top: 60px; /* 为固定的Header留出空间 */
+  margin-top: 40px; /* 为固定的Header留出空间 */
   background-color: #f5f9ff;
 }
 
