@@ -6,8 +6,8 @@
       <div class="dashboard-card quick-note">
         <div class="card-header">
           <h2>快速笔记</h2>
-          <div class="voice-btn">
-            <VoiceIcon class="voice-icon" />
+          <div class="publish-btn">
+            发布
           </div>
         </div>
         <div class="card-content">
@@ -101,10 +101,10 @@
 
     <!-- 第二行 -->
     <div class="dashboard-row">
-      <!-- 待办事项 -->
+      <!-- 快速笔记列表 -->
       <div class="dashboard-card todo-list">
         <div class="card-header">
-          <h2>待办事项</h2>
+          <h2>我的快速笔记</h2>
           <div class="icon-btn"><i class="iconfont icon-plus"></i></div>
         </div>
         <div class="card-content">
@@ -284,7 +284,6 @@
 </template>
 
 <script setup>
-import VoiceIcon from '@/assets/icon-voice.svg'
 // 可以添加业务逻辑
 </script>
 
@@ -371,26 +370,18 @@ import VoiceIcon from '@/assets/icon-voice.svg'
   line-height: 1;
 }
 
-.voice-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background-color: #f0f9ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.publish-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background-color: #1890ff;
+  color: white;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.3s;
 }
 
-.voice-btn:hover {
-  background-color: #e6f4ff;
-}
-
-
-.voice-icon :deep(svg) {
-  width: 100%;
-  height: 100%;
+.publish-btn:hover {
+  background-color: #40a9ff;
 }
 
 .quick-note .card-content {

@@ -41,8 +41,8 @@
 </template>
 
 <script setup>
-import { ref, inject, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, inject, watch, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import TaskIcon from '@/assets/icon-task.svg'
 import PlanIcon from '@/assets/icon-task.svg'
 import NoteIcon from '@/assets/icon-note.svg'
@@ -59,7 +59,9 @@ const emit = defineEmits(['toggle-collapse'])
 // 响应式状态
 const isCollapsed = ref(false)
 const isHovered = ref(false)
-const activeItem = ref('task-center')
+const activeItem = ref('')
+const router = useRouter()
+const route = useRoute()
 
 // 获取当前模式（个人/团队）
 const activeMode = inject('activeMode', ref('personal'))
@@ -83,8 +85,6 @@ const teamNavItems = [
     { id: 'members', label: '团队成员', icon: TeamIcon, route: '/team/members' }
 ]
 
-const router = useRouter()
-
 const toggleCollapse = () => {
     isCollapsed.value = !isCollapsed.value
     emit('toggle-collapse', isCollapsed.value)
@@ -96,6 +96,28 @@ const navigateTo = (item) => {
         router.push(item.route)
     }
 }
+
+// 根据路由路径获取对应的导航项ID
+const getNavItemIdByRoute = (path) => {
+    const allNavItems = [...personalNavItems, ...teamNavItems]
+    const matchedItem = allNavItems.find(item => item.route === path)
+    return matchedItem ? matchedItem.id : 'task-center'
+}
+
+// 初始化选中状态
+const initActiveItem = () => {
+    activeItem.value = getNavItemIdByRoute(route.path)
+}
+
+// 监听路由变化
+watch(() => route.path, (newPath) => {
+    activeItem.value = getNavItemIdByRoute(newPath)
+}, { immediate: true })
+
+// 组件挂载时初始化
+onMounted(() => {
+    initActiveItem()
+})
 </script>
 
 <style scoped>

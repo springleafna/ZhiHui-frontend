@@ -7,6 +7,7 @@
                     v-model:activeKey="activeTaskGroup" 
                     type="card"
                     class="custom-tabs"
+                    v-if="taskGroups.length > 0"
                 >
                     <template #rightExtra>
                         <a-space>
@@ -17,7 +18,6 @@
                             >
                                 <a-select-option value="dueDate">截止日期</a-select-option>
                                 <a-select-option value="priority">优先级</a-select-option>
-                                <a-select-option value="progress">完成进度</a-select-option>
                             </a-select>
                             <a-button type="primary" @click="showAddGroupModal">
                                 <template #icon><PlusOutlined /></template>
@@ -25,15 +25,17 @@
                             </a-button>
                         </a-space>
                     </template>
-                    <a-tab-pane v-for="group in taskGroups" :key="group.key" :tab="group.title">
+                    <a-tab-pane v-for="group in taskGroups" :key="group.key">
                         <template #tab>
-                            <span class="tab-title">
+                            <div class="tab-title">
                                 {{ group.title }}
-                                <DeleteOutlined 
-                                    class="delete-icon"
-                                    @click.stop="confirmDeleteGroup(group)" 
-                                />
-                            </span>
+                                <a-tooltip title="删除任务组">
+                                    <DeleteOutlined 
+                                        class="delete-icon"
+                                        @click.stop="confirmDeleteGroup(group)" 
+                                    />
+                                </a-tooltip>
+                            </div>
                         </template>
                         <!-- 任务类别列表 -->
                         <div class="task-categories">
@@ -47,16 +49,19 @@
                                 >
                                     <template #header>
                                         <div class="category-header">
-                                            <span>{{ category.title }}</span>
-                                            <a-space>
-                                                <a-button type="link" @click.stop="showAddTaskModal(category)">
-                                                    <PlusOutlined />添加任务
-                                                </a-button>
-                                                <DeleteOutlined 
-                                                    class="delete-icon"
-                                                    @click.stop="confirmDeleteCategory(group, category)" 
-                                                />
-                                            </a-space>
+                                            <span class="category-title">{{ category.title }}</span>
+                                            <div class="category-actions">
+                                                <a-tooltip title="添加任务">
+                                                    <a-button type="link" @click.stop="showAddTaskModal(category)">
+                                                        <PlusOutlined />
+                                                    </a-button>
+                                                </a-tooltip>
+                                                <a-tooltip title="删除类别">
+                                                    <a-button type="link" danger @click.stop="confirmDeleteCategory(group, category)">
+                                                        <DeleteOutlined />
+                                                    </a-button>
+                                                </a-tooltip>
+                                            </div>
                                         </div>
                                     </template>
                                     <!-- 任务列表 -->
@@ -75,6 +80,7 @@
                                                                 <a-checkbox 
                                                                     v-model:checked="item.completed"
                                                                     :class="{ 'task-completed': item.completed }"
+                                                                    @change="(e) => handleTaskComplete(item, e.target.checked)"
                                                                     @click.stop
                                                                 >
                                                                     {{ item.title }}
@@ -85,6 +91,11 @@
                                                                     <a-tag :color="getPriorityColor(item.priority)">
                                                                         {{ getPriorityText(item.priority) }}
                                                                     </a-tag>
+                                                                    <a-tooltip title="添加到任务四象限">
+                                                                        <a-button type="link" @click.stop="addToMatrix(item)">
+                                                                            <TagsOutlined />
+                                                                        </a-button>
+                                                                    </a-tooltip>
                                                                     <a-button 
                                                                         type="link"
                                                                         @click="handleTaskClick(item)"
@@ -125,6 +136,7 @@
                                                                 <a-checkbox 
                                                                     v-model:checked="item.completed"
                                                                     :class="{ 'task-completed': item.completed }"
+                                                                    @change="(e) => handleTaskComplete(item, e.target.checked)"
                                                                     @click.stop
                                                                 >
                                                                     {{ item.title }}
@@ -135,6 +147,11 @@
                                                                     <a-tag :color="getPriorityColor(item.priority)">
                                                                         {{ getPriorityText(item.priority) }}
                                                                     </a-tag>
+                                                                    <a-tooltip title="添加到任务四象限">
+                                                                        <a-button type="link" @click.stop="addToMatrix(item)">
+                                                                            <TagsOutlined />
+                                                                        </a-button>
+                                                                    </a-tooltip>
                                                                     <a-button 
                                                                         type="link"
                                                                         @click="handleTaskClick(item)"
@@ -175,6 +192,22 @@
                         </div>
                     </a-tab-pane>
                 </a-tabs>
+
+                <!-- 空状态提示 -->
+                <div v-else class="empty-state">
+                    <a-empty
+                        :image="simpleImage"
+                        :description="false"
+                    >
+                        <template #description>
+                            <span class="empty-text">您还没有添加计划哦~请先添加任务组</span>
+                        </template>
+                        <a-button type="primary" @click="showAddGroupModal">
+                            <template #icon><PlusOutlined /></template>
+                            添加任务组
+                        </a-button>
+                    </a-empty>
+                </div>
             </div>
 
             <!-- 右侧任务详情 -->
@@ -302,6 +335,14 @@
                         valueFormat="YYYY-MM-DD"
                     />
                 </a-form-item>
+                <a-form-item label="描述" name="description">
+                    <a-textarea 
+                        v-model:value="newTask.description" 
+                        placeholder="请输入任务描述（选填）" 
+                        :rows="4"
+                        :allowClear="true"
+                    />
+                    </a-form-item>
             </a-form>
         </a-modal>
 
@@ -317,6 +358,25 @@
         >
             <p>{{ deleteConfirmMessage }}</p>
         </a-modal>
+
+        <!-- 四象限弹窗 -->
+        <a-modal
+            v-model:open="matrixModalVisible"
+            title="将任务加入到任务四象限"
+            @ok="confirmAddToMatrix"
+            @cancel="() => matrixModalVisible = false"
+        >
+            <a-form :model="matrixForm" ref="matrixFormRef">
+                <a-form-item label="选择象限" name="quadrant">
+                    <a-select v-model:value="matrixForm.quadrant" placeholder="请选择任务象限">
+                        <a-select-option :value="1">紧急且重要</a-select-option>
+                        <a-select-option :value="2">紧急不重要</a-select-option>
+                        <a-select-option :value="3">不紧急但重要</a-select-option>
+                        <a-select-option :value="4">不紧急不重要</a-select-option>
+                    </a-select>
+                </a-form-item>
+            </a-form>
+        </a-modal>
     </div>
 </template>
 
@@ -326,10 +386,23 @@ import {
     PlusOutlined, 
     DeleteOutlined, 
     CalendarOutlined,
-    EditOutlined
+    EditOutlined,
+    TagsOutlined
 } from '@ant-design/icons-vue'
-import { message } from 'ant-design-vue'
-import { listAllLongTermTask } from '@/api/longTermTask'
+import { message, Empty } from 'ant-design-vue'
+import { 
+    listAllLongTermTask, 
+    saveLongTermTask, 
+    deleteLongTermTask, 
+    updateLongTermTask, 
+    completeLongTermTask,
+    insertGroupTask,
+    deleteGroupTask,
+    insertCategoryTask,
+    deleteCategoryTask
+} from '@/api/longTermTask'
+
+const { simpleImage } = Empty
 
 // 当前激活的任务组
 const activeTaskGroup = ref('1')
@@ -375,6 +448,14 @@ const sortType = ref('dueDate')
 const taskDrawerVisible = ref(false)
 const selectedTask = ref(null)
 
+// 四象限相关
+const matrixModalVisible = ref(false)
+const selectedTaskForMatrix = ref(null)
+const matrixForm = ref({
+    quadrant: 1
+})
+const matrixFormRef = ref(null)
+
 // 获取优先级颜色
 const getPriorityColor = (priority) => {
     const colors = {
@@ -417,28 +498,35 @@ const showAddTaskModal = (category) => {
     })
 }
 
-const handleAddTask = () => {
+const handleAddTask = async () => {
     if (!newTask.title) {
         message.error('请输入任务名称')
         return
     }
 
-    if (currentCategory.value) {
-        const task = {
-            id: Date.now().toString(),
-            ...newTask
-        }
+    try {
+        await saveLongTermTask({
+            taskName: newTask.title,
+            description: newTask.description || '',
+            priority: getPriorityNumber(newTask.priority),
+            dueDate: newTask.dueDate,
+            categoryId: parseInt(currentCategory.value.key)
+        })
         
-        // 找到对应的任务类别并添加任务
-        const group = taskGroups.value.find(g => g.key === activeTaskGroup.value)
-        if (group) {
-            const category = group.categories.find(c => c.key === currentCategory.value.key)
-            if (category) {
-                category.tasks.push(task)
-                message.success('添加任务成功')
-                taskModalVisible.value = false
-            }
-        }
+        // 重新获取并更新任务列表
+        await updateTaskList()
+        message.success('添加任务成功')
+        taskModalVisible.value = false
+        // 重置表单
+        Object.assign(newTask, {
+            title: '',
+            priority: 'medium',
+            dueDate: null,
+            description: '',
+            completed: false
+        })
+    } catch (error) {
+        console.error('添加任务失败:', error)
     }
 }
 
@@ -447,22 +535,25 @@ const showAddCategoryModal = () => {
     newCategory.title = ''
 }
 
-const handleAddCategory = () => {
+const handleAddCategory = async () => {
     if (!newCategory.title) {
         message.error('请输入类别名称')
         return
     }
 
-    const group = taskGroups.value.find(g => g.key === activeTaskGroup.value)
-    if (group) {
-        const category = {
-            key: Date.now().toString(),
-            title: newCategory.title,
-            tasks: []
-        }
-        group.categories.push(category)
+    try {
+        await insertCategoryTask({
+            categoryName: newCategory.title,
+            groupId: parseInt(activeTaskGroup.value)
+        })
+        
+        // 重新获取并更新任务列表
+        await updateTaskList()
         message.success('添加类别成功')
         categoryModalVisible.value = false
+        newCategory.title = ''
+    } catch (error) {
+        console.error('添加类别失败:', error)
     }
 }
 
@@ -471,20 +562,25 @@ const showAddGroupModal = () => {
     newGroup.title = ''
 }
 
-const handleAddGroup = () => {
+const handleAddGroup = async () => {
     if (!newGroup.title) {
         message.error('请输入任务组名称')
         return
     }
 
-    const group = {
-        key: Date.now().toString(),
-        title: newGroup.title,
-        categories: []
+    try {
+        await insertGroupTask({
+            groupName: newGroup.title
+        })
+        
+        // 重新获取并更新任务列表
+        await updateTaskList()
+        message.success('添加任务组成功')
+        groupModalVisible.value = false
+        newGroup.title = ''
+    } catch (error) {
+        console.error('添加任务组失败:', error)
     }
-    taskGroups.value.push(group)
-    message.success('添加任务组成功')
-    groupModalVisible.value = false
 }
 
 // 确认删除任务组
@@ -495,56 +591,48 @@ const confirmDeleteGroup = (group) => {
 };
 
 // 处理删除任务组
-const handleDeleteGroup = (group) => {
+const handleDeleteGroup = async (group) => {
     try {
-        // 过滤掉要删除的任务组
-        taskGroups.value = taskGroups.value.filter(g => g.key !== group.key);
+        await deleteGroupTask(parseInt(group.key))
+        // 重新获取并更新任务列表
+        await updateTaskList()
         
         // 如果当前激活的任务组被删除，切换到第一个任务组或清空
         if (activeTaskGroup.value === group.key) {
             if (taskGroups.value.length > 0) {
-                activeTaskGroup.value = taskGroups.value[0].key;
+                activeTaskGroup.value = taskGroups.value[0].key
             } else {
-                activeTaskGroup.value = '';
+                activeTaskGroup.value = ''
             }
         }
         
-        message.success('任务组删除成功');
+        message.success('任务组删除成功')
     } catch (error) {
-        console.error('删除任务组失败:', error);
-        message.error('删除任务组失败');
+        console.error('删除任务组失败:', error)
+        message.error('删除任务组失败')
     }
-    deleteModalVisible.value = false;
-};
-
+    deleteModalVisible.value = false
+}
 
 // 确认删除任务类别
 const confirmDeleteCategory = (group, category) => {
     deleteConfirmMessage.value = `确定要删除任务类别"${category.title}"吗？这将删除该类别下的所有任务。`
-    deleteCallback.value = () => {
-        const groupIndex = taskGroups.value.findIndex(g => g.key === group.key)
-        if (groupIndex !== -1) {
-            const categoryIndex = group.categories.findIndex(c => c.key === category.key)
-            if (categoryIndex !== -1) {
-                group.categories.splice(categoryIndex, 1)
-                message.success('删除任务类别成功')
-            }
-        }
-    }
+    deleteCallback.value = () => handleDeleteCategory(category)
     deleteModalVisible.value = true
 }
 
-// 确认删除任务
-const confirmDeleteTask = (category, task) => {
-    deleteConfirmMessage.value = `确定要删除任务"${task.title}"吗？`
-    deleteCallback.value = () => {
-        const taskIndex = category.tasks.findIndex(t => t.id === task.id)
-        if (taskIndex !== -1) {
-            category.tasks.splice(taskIndex, 1)
-            message.success('删除任务成功')
-        }
+// 处理删除任务类别
+const handleDeleteCategory = async (category) => {
+    try {
+        await deleteCategoryTask(parseInt(category.key))
+        // 重新获取并更新任务列表
+        await updateTaskList()
+        message.success('删除任务类别成功')
+    } catch (error) {
+        console.error('删除任务类别失败:', error)
+        message.error('删除任务类别失败')
     }
-    deleteModalVisible.value = true
+    deleteModalVisible.value = false
 }
 
 // 处理删除操作
@@ -594,19 +682,25 @@ const handleTaskClick = (task) => {
 }
 
 // 保存任务更新
-const handleTaskUpdate = () => {
+const handleTaskUpdate = async () => {
     if (selectedTask.value) {
-        // 更新原始任务数据
-        const group = taskGroups.value.find(g => g.key === activeTaskGroup.value)
-        if (group) {
-            group.categories.forEach(category => {
-                const taskIndex = category.tasks.findIndex(t => t.id === selectedTask.value.id)
-                if (taskIndex !== -1) {
-                    category.tasks[taskIndex] = { ...selectedTask.value }
-                }
+        try {
+            await updateLongTermTask({
+                longTermTaskId: parseInt(selectedTask.value.id),
+                taskName: selectedTask.value.title,
+                description: selectedTask.value.description || '',
+                priority: getPriorityNumber(selectedTask.value.priority),
+                dueDate: selectedTask.value.dueDate
             })
+            
+            // 重新获取并更新任务列表
+            await updateTaskList()
+            message.success('任务更新成功')
+            selectedTask.value = null
+        } catch (error) {
+            console.error('更新任务失败:', error)
+            message.error('更新任务失败')
         }
-        message.success('任务更新成功')
     }
 }
 
@@ -649,8 +743,8 @@ const getCompletionRate = () => {
 // 定义任务组状态
 const taskGroups = ref([])
 
-// 挂载时获取数据
-onMounted(async () => {
+// 更新任务列表数据
+const updateTaskList = async () => {
     try {
         const res = await listAllLongTermTask()
         if (res) {
@@ -670,12 +764,90 @@ onMounted(async () => {
                     }))
                 }))
             }))
+            
+            // 如果有任务组且当前没有选中的任务组，自动选中第一个
+            if (taskGroups.value.length > 0 && !activeTaskGroup.value) {
+                activeTaskGroup.value = taskGroups.value[0].key
+            }
         }
     } catch (err) {
         console.error('加载长期任务失败:', err)
         message.error('加载长期任务失败')
     }
+}
+
+// 挂载时获取数据
+onMounted(async () => {
+    await updateTaskList()
 })
+
+// 添加到四象限
+const addToMatrix = (task) => {
+    selectedTaskForMatrix.value = task
+    matrixModalVisible.value = true
+}
+
+// 确认添加到四象限
+const confirmAddToMatrix = async () => {
+    if (selectedTaskForMatrix.value && matrixForm.value.quadrant) {
+        const quadrantLabels = {
+            1: '紧急且重要',
+            2: '紧急不重要',
+            3: '不紧急但重要',
+            4: '不紧急不重要'
+        }
+        message.success(`已将任务 "${selectedTaskForMatrix.value.title}" 添加到 ${quadrantLabels[matrixForm.value.quadrant]}`)
+        matrixModalVisible.value = false
+        selectedTaskForMatrix.value = null
+        matrixForm.value.quadrant = 1
+    }
+}
+
+// 优先级文本转数字
+const getPriorityNumber = (priority) => {
+    const priorityMap = {
+        low: 0,
+        medium: 1,
+        high: 2
+    }
+    return priorityMap[priority] || 0
+}
+
+// 确认删除任务
+const confirmDeleteTask = (category, task) => {
+    deleteConfirmMessage.value = `确定要删除任务"${task.title}"吗？`
+    deleteCallback.value = () => handleDeleteTask(task)
+    deleteModalVisible.value = true
+}
+
+// 处理删除任务
+const handleDeleteTask = async (task) => {
+    try {
+        await deleteLongTermTask(parseInt(task.id))
+        // 重新获取并更新任务列表
+        await updateTaskList()
+        message.success('删除任务成功')
+    } catch (error) {
+        console.error('删除任务失败:', error)
+        message.error('删除任务失败')
+    }
+    deleteModalVisible.value = false
+}
+
+// 处理任务完成状态更新
+const handleTaskComplete = async (task, completed) => {
+    try {
+        await completeLongTermTask(parseInt(task.id), completed ? 1 : 0)
+        // 更新本地状态
+        task.completed = completed
+        message.success(`任务${completed ? '已完成' : '已取消完成'}`)
+    } catch (error) {
+        // 如果API调用失败，恢复复选框状态
+        task.completed = !completed
+        console.error('更新任务状态失败:', error)
+        message.error('更新任务状态失败')
+    }
+}
 </script>
 
 <style scoped>
@@ -884,5 +1056,124 @@ onMounted(async () => {
 
 .delete-icon:hover {
     opacity: 1;
+}
+
+.tab-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    padding-right: 24px;
+}
+
+.delete-icon {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #999;
+    cursor: pointer;
+    transition: all 0.3s;
+    opacity: 0;
+}
+
+.tab-title:hover .delete-icon {
+    opacity: 1;
+    color: #ff4d4f;
+}
+
+:deep(.ant-tabs-tab) {
+    position: relative;
+    padding-right: 8px !important;
+}
+
+:deep(.ant-tabs-tab-active) .delete-icon {
+    color: #fff;
+    opacity: 0.8;
+}
+
+:deep(.ant-tabs-tab-active) .delete-icon:hover {
+    opacity: 1;
+}
+
+:deep(.ant-tabs-tab) {
+    margin: 0 4px 0 0 !important;
+    padding: 8px 16px !important;
+    transition: all 0.3s;
+}
+
+:deep(.ant-tabs-tab:hover) {
+    color: #1890ff;
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding-right: 16px;
+}
+
+.category-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.85);
+}
+
+.category-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.category-actions :deep(.ant-btn) {
+    padding: 4px 8px;
+    height: auto;
+}
+
+:deep(.ant-collapse-header) {
+    align-items: center !important;
+    padding: 12px 16px !important;
+}
+
+:deep(.ant-collapse-header:hover) .category-actions {
+    opacity: 1;
+}
+
+.category-actions {
+    opacity: 0.4;
+    transition: opacity 0.3s;
+}
+
+:deep(.ant-collapse-header-text) {
+    flex: 1;
+}
+
+.empty-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    padding: 24px;
+}
+
+.empty-text {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 14px;
+    margin-bottom: 16px;
+    display: block;
+}
+
+:deep(.ant-empty) {
+    margin: 32px 0;
+}
+
+:deep(.ant-empty-image) {
+    height: 100px;
+    margin-bottom: 24px;
 }
 </style>

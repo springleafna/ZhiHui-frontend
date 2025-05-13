@@ -49,6 +49,11 @@
                       </div>
                     </div>
                     <div class="task-actions">
+                      <a-tooltip title="添加到任务四象限">
+                        <a-button type="text" @click="addToMatrix(item)">
+                          <template #icon><TagsOutlined /></template>
+                        </a-button>
+                      </a-tooltip>
                       <a-button type="text" @click="editTask(item)">
                         <template #icon><EditOutlined /></template>
                       </a-button>
@@ -174,6 +179,25 @@
       </div>
     </div>
 
+    <!-- 四象限弹窗 -->
+    <a-modal
+      v-model:open="matrixModalVisible"
+      title="将任务加入到任务四象限"
+      @ok="confirmAddToMatrix"
+      @cancel="() => matrixModalVisible = false"
+    >
+      <a-form :model="matrixForm" ref="matrixFormRef">
+        <a-form-item label="选择象限" name="quadrant">
+          <a-select v-model:value="matrixForm.quadrant" placeholder="请选择任务象限">
+            <a-select-option :value="1">紧急且重要</a-select-option>
+            <a-select-option :value="2">紧急不重要</a-select-option>
+            <a-select-option :value="3">不紧急但重要</a-select-option>
+            <a-select-option :value="4">不紧急不重要</a-select-option>
+          </a-select>
+        </a-form-item>
+      </a-form>
+    </a-modal>
+
     <!-- 新建/编辑任务弹窗 -->
     <a-modal
       v-model:open="modalVisible"
@@ -230,7 +254,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { message } from 'ant-design-vue'
+import { message} from 'ant-design-vue'  // Add Modal and Select imports
 import { 
   PlusOutlined, 
   EditOutlined, 
@@ -238,7 +262,8 @@ import {
   HistoryOutlined,
   ExportOutlined,
   RobotOutlined,
-  BulbOutlined
+  BulbOutlined,
+  TagsOutlined,
 } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
 import { 
@@ -577,6 +602,42 @@ const editTask = (task) => {
     description: task.description || ''
   }
   modalVisible.value = true
+}
+
+// 添加任务到任务四象限
+const addToMatrix = (task) => {
+  selectedTaskForMatrix.value = task
+  matrixModalVisible.value = true
+}
+
+// 四象限弹窗相关
+const matrixModalVisible = ref(false)
+const selectedTaskForMatrix = ref(null)
+const matrixForm = ref({
+  quadrant: 1
+})
+const matrixFormRef = ref(null)
+
+// 处理四象限选择
+const handleMatrixSelect = (value) => {
+  matrixForm.value.quadrant = value
+}
+
+// 确认添加到四象限
+const confirmAddToMatrix = async () => {
+  if (selectedTaskForMatrix.value && matrixForm.value.quadrant) {
+    // 这里可以添加实际的添加到四象限的接口调用
+    const quadrantLabels = {
+      1: '紧急且重要',
+      2: '紧急不重要',
+      3: '不紧急但重要',
+      4: '不紧急不重要'
+    }
+    message.success(`已将任务 "${selectedTaskForMatrix.value.title}" 添加到 ${quadrantLabels[matrixForm.value.quadrant]}`)
+    matrixModalVisible.value = false
+    selectedTaskForMatrix.value = null
+    matrixForm.value.quadrant = 1
+  }
 }
 </script>
 

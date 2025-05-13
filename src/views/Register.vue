@@ -19,11 +19,11 @@
                 </div>
 
                 <div class="form-group">
-                    <label>邮箱</label>
+                    <label>账号</label>
                     <input 
                         type="email" 
                         v-model="registerForm.email" 
-                        placeholder="example@zhihui.com"
+                        placeholder="请输入手机号/邮箱"
                         class="form-input"
                     />
                 </div>
