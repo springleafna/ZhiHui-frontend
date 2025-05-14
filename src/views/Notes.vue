@@ -32,21 +32,35 @@
 
         <!-- 中间笔记列表 -->
         <div class="notes-list">
-            <div 
-                class="note-item" 
-                v-for="note in filteredNotes" 
-                :key="note.id">
-                <div class="note-icon">
-                    <i class="icon-file-text"></i>
-                </div>
-                <div class="note-content">
-                    <h3 class="note-title">{{ note.title }}</h3>
-                    <div class="note-meta">
-                        <span class="note-path">{{ note.path }}</span>
-                        <span class="note-time">{{ note.time }}</span>
+            <template v-if="notes.length > 0">
+                <div 
+                    class="note-item" 
+                    v-for="note in filteredNotes" 
+                    :key="note.id">
+                    <div class="note-icon">
+                        <i class="icon-file-text"></i>
+                    </div>
+                    <div class="note-content">
+                        <h3 class="note-title">{{ note.title }}</h3>
+                        <div class="note-meta">
+                            <span class="note-category">{{ note.category }}</span>
+                            <span class="note-time">{{ formatDateTime(note.updateTime) }}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </template>
+            <template v-else>
+                <div class="empty-state">
+                    <a-empty
+                        :image="simpleImage"
+                        description="您还没有创作笔记哦~"
+                    >
+                        <a-button type="primary" @click="goToEditor">
+                            立即创作
+                        </a-button>
+                    </a-empty>
+                </div>
+            </template>
         </div>
 
         <!-- 右侧快速操作区 -->
@@ -91,91 +105,230 @@
         </div>
     </div>
     </div>
+
+    <!-- 新建分类弹窗 -->
+    <a-modal
+        v-model:open="showAddDialog"
+        title="新建分类"
+        @ok="addCategory"
+        @cancel="cancelAdd"
+        :confirmLoading="loading"
+    >
+        <a-form 
+            :model="newCategoryForm"
+            :rules="formRules"
+            ref="formRef"
+        >
+            <a-form-item 
+                label="分类名称" 
+                name="name"
+                :validate-trigger="['change', 'blur']"
+            >
+                <a-input 
+                    v-model:value="newCategoryForm.name" 
+                    placeholder="请输入分类名称"
+                    @pressEnter="addCategory"
+                    allowClear
+                />
+            </a-form-item>
+        </a-form>
+    </a-modal>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { message, Modal } from 'ant-design-vue'
+import { message, Modal, Empty } from 'ant-design-vue'
+import { 
+    listAllNoteCategories, 
+    createNoteCategory, 
+    updateNoteCategory,
+    getNotesByCategory,
+    getNotesWithoutCategory,
+    getAllNotes
+} from '@/api/note'
 
 // 初始化路由
 const router = useRouter()
 
-const notes = ref([
-    {
-        id: 1,
-        title: '热券-CouponFury',
-        category: 'springleaf',
-        path: '默认知识库',
-        time: '03-11 22:44'
-    },
-    {
-        id: 2,
-        title: '八股',
-        category: 'springleaf',
-        path: '默认知识库',
-        time: '02-27 10:31'
-    },
-    {
-        id: 3,
-        title: '编程相关',
-        category: 'springleaf',
-        path: '默认知识库',
-        time: '02-25 10:31'
-    },
-    {
-        id: 4,
-        title: '毕设智囊团——毕业设计全流程辅助平台需求文档',
-        category: 'springleaf',
-        path: '默认知识库',
-        time: '02-23 23:03'
-    }
+// Empty组件的简单图片
+const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE
+
+// 笔记数据
+const notes = ref([])
+
+// 分类数据
+const categories = ref([
+    { label: '全部笔记', value: 'all', count: 0 },
+    { label: '未分类', value: 'uncategorized', count: 0 }
 ])
+
+const currentCategory = ref('all')
+
+// 获取所有分类
+const fetchCategories = async () => {
+    try {
+        const categoryList = await listAllNoteCategories()
+        // 保留"全部笔记"和"未分类"两个固定选项
+        categories.value = [
+            { label: '全部笔记', value: 'all', count: 0 },
+            { label: '未分类', value: 'uncategorized', count: 0 },
+            ...categoryList.map(cat => ({
+                label: cat.categoryName,
+                value: cat.noteCategoryId.toString(),
+                count: 0 // 初始化为0，在获取笔记时更新
+            }))
+        ]
+    } catch (error) {
+        console.error('获取分类失败:', error)
+    }
+}
+
+// 获取笔记列表
+const fetchNotes = async () => {
+    try {
+        let noteList = []
+        if (currentCategory.value === 'all') {
+            noteList = await getAllNotes()
+        } else if (currentCategory.value === 'uncategorized') {
+            noteList = await getNotesWithoutCategory()
+        } else {
+            noteList = await getNotesByCategory(parseInt(currentCategory.value))
+        }
+        notes.value = noteList.map(note => ({
+            id: note.noteId,
+            noteCategoryId: note.noteCategoryId,
+            title: note.title,
+            category: note.categoryName || '未分类',
+            updateTime: note.updateTime
+        }))
+        
+        // 更新分类数量
+        updateCategoryCounts()
+    } catch (error) {
+        console.error('获取笔记列表失败:', error)
+    }
+}
+
+// 更新分类数量
+const updateCategoryCounts = async () => {
+    try {
+        const allNotes = await getAllNotes()
+        const uncategorizedNotes = await getNotesWithoutCategory()
+        
+        // 更新"全部笔记"数量
+        categories.value[0].count = allNotes.length
+        
+        // 更新"未分类"数量
+        categories.value[1].count = uncategorizedNotes.length
+        
+        // 更新其他分类的数量
+        for (const category of categories.value.slice(2)) {
+            try {
+                const categoryNotes = await getNotesByCategory(parseInt(category.value))
+                category.count = categoryNotes.length
+            } catch (error) {
+                console.error(`获取分类 ${category.label} 的笔记数量失败:`, error)
+                category.count = 0
+            }
+        }
+    } catch (error) {
+        console.error('更新分类数量失败:', error)
+    }
+}
+
+// 格式化时间
+const formatDateTime = (dateTimeStr) => {
+    if (!dateTimeStr) return ''
+    const date = new Date(dateTimeStr)
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    return `${month}-${day} ${hours}:${minutes}`
+}
+
+// 监听分类变化
+const filteredNotes = computed(() => notes.value)
+
+// 页面加载时获取数据
+onMounted(async () => {
+    await fetchCategories()
+    await fetchNotes()
+})
+
+// 监听分类切换
+watch(currentCategory, async () => {
+    await fetchNotes()
+})
 
 const goToEditor = () => {
     router.push('/editor')
 }
 
-const categories = ref([
-    { label: '全部笔记', value: '全部', count: 4 },
-    { label: '默认知识库', value: '默认', count: 4 },
-    { label: '个人笔记', value: '个人', count: 0 },
-    { label: '工作笔记', value: '工作', count: 0 },
-    { label: '学习笔记', value: '学习', count: 0 }
-])
-
-const currentCategory = ref('全部')
-
-const filteredNotes = computed(() => {
-    if (currentCategory.value === '全部') return notes.value
-    return notes.value.filter(note => note.category === currentCategory.value)
-})
-
+const formRef = ref()
+const loading = ref(false)
 const showAddDialog = ref(false)
 const newCategoryForm = ref({
     name: ''
 })
 
-const addCategory = () => {
-    if (!newCategoryForm.value.name.trim()) {
-        message.warning('分类名称不能为空')
-        return
-    }
-    
-    const exists = categories.value.some(c => c.label === newCategoryForm.value.name)
-    if (exists) {
-        message.warning('该分类已存在')
-        return
-    }
+// 表单验证规则
+const formRules = {
+    name: [
+        { required: true, message: '请输入分类名称', trigger: 'blur' },
+        { whitespace: true, message: '分类名称不能为空', trigger: 'blur' },
+        { min: 1, max: 20, message: '分类名称长度为1-20个字符', trigger: 'blur' }
+    ]
+}
 
-    categories.value.push({
-        label: newCategoryForm.value.name,
-        value: newCategoryForm.value.name,
-        count: 0
-    })
-    
-    showAddDialog.value = false
+// 取消添加分类
+const cancelAdd = () => {
     newCategoryForm.value.name = ''
+    formRef.value?.resetFields()
+    showAddDialog.value = false
+}
+
+// 添加分类
+const addCategory = async () => {
+    if (!formRef.value) return
+    
+    try {
+        // 触发表单验证
+        await formRef.value.validate()
+        
+        const categoryName = newCategoryForm.value.name.trim()
+        if (!categoryName) {
+            message.warning('分类名称不能为空')
+            return
+        }
+        
+        const exists = categories.value.some(c => c.label === categoryName)
+        if (exists) {
+            message.warning('该分类已存在')
+            return
+        }
+
+        loading.value = true
+        await createNoteCategory({
+            categoryName: categoryName
+        })
+        await fetchCategories() // 重新获取分类列表
+        await updateCategoryCounts() // 更新所有分类的数量
+        message.success('添加分类成功')
+        showAddDialog.value = false
+        newCategoryForm.value.name = ''
+        formRef.value.resetFields()
+    } catch (error) {
+        if (error?.errorFields) {
+            // 表单验证错误
+            return
+        }
+        console.error('添加分类失败:', error)
+        message.error('添加分类失败')
+    } finally {
+        loading.value = false
+    }
 }
 
 const handleDelete = async () => {
@@ -220,6 +373,12 @@ const handleDelete = async () => {
 .notes-list {
     flex: 1;
     min-width: 400px;
+    padding: 24px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    overflow-y: auto;
+    max-height: calc(100vh - 48px);
 }
 
 .quick-actions {
@@ -285,39 +444,63 @@ const handleDelete = async () => {
 .note-item {
     display: flex;
     align-items: center;
-    padding: 16px;
-    border-radius: 8px;
+    padding: 20px;
+    border-radius: 12px;
     transition: all 0.2s;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
+    background: #fff;
+    border: 1px solid #f0f0f0;
+    cursor: pointer;
     
     &:hover {
         background: #fafafa;
         transform: translateX(4px);
+        border-color: #e6f4ff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
 }
 
 .note-icon {
-    width: 36px;
-    height: 36px;
-    background: #f5f5f5;
-    border-radius: 6px;
+    width: 48px;
+    height: 48px;
+    background: #f5f7fa;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #666;
-    margin-right: 16px;
+    color: #1677ff;
+    margin-right: 20px;
+    font-size: 24px;
+}
+
+.note-content {
+    flex: 1;
 }
 
 .note-title {
-    font-size: 15px;
+    font-size: 16px;
     color: #1a1a1a;
-    margin: 0 0 4px;
+    margin: 0 0 8px;
+    font-weight: 500;
+    line-height: 1.4;
 }
 
 .note-meta {
     display: flex;
-    gap: 12px;
+    gap: 16px;
+    font-size: 13px;
+    color: #999;
+}
+
+.note-category {
+    color: #1677ff;
+    background: #e6f4ff;
+    padding: 2px 8px;
+    border-radius: 4px;
     font-size: 12px;
+}
+
+.note-time {
     color: #999;
 }
 
@@ -412,5 +595,14 @@ const handleDelete = async () => {
     height: 48px;
     font-size: 15px;
     box-shadow: 0 2px 8px rgba(22, 119, 255, 0.2);
+}
+
+/* 空状态样式 */
+.empty-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 40px;
 }
 </style>
