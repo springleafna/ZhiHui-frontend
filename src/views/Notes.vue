@@ -60,7 +60,8 @@
                 <div 
                     class="note-item" 
                     v-for="note in filteredNotes" 
-                    :key="note.id">
+                    :key="note.id"
+                    @click="handleNoteClick(note)">
                     <div class="note-icon">
                         <i class="icon-file-text"></i>
                     </div>
@@ -500,8 +501,14 @@ const handleNoteMenuClick = (e, note) => {
 const handleEditCategory = (category) => {
   message.info('编辑分类功能待实现')
 }
+
 const handleEditNote = (note) => {
-  message.info('编辑笔记功能待实现')
+  router.push(`/note/${note.id}/edit`)
+}
+
+// 添加笔记点击事件处理函数
+const handleNoteClick = (note) => {
+  router.push(`/note/${note.id}`)
 }
 </script>
 
@@ -700,14 +707,15 @@ const handleEditNote = (note) => {
     gap: 8px;
     cursor: pointer;
     transition: all 0.2s;
-    
-    &.primary {
-        background: #1677ff;
-        color: white;
-    }
-    &.primary:hover {
-        background: #4096ff;
-    }
+}
+
+.action-button.primary {
+    background: #1677ff;
+    color: white;
+}
+
+.action-button.primary:hover {
+    background: #4096ff;
 }
 
 /* 右侧操作区优化 */
@@ -771,15 +779,6 @@ const handleEditNote = (note) => {
 
 .export-button i {
     font-size: 16px;
-}
-
-/* 主操作按钮优化 */
-.action-button.primary {
-    background: #1677ff;
-    color: white;
-}
-.action-button.primary:hover {
-    background: #4096ff;
 }
 
 /* 空状态样式 */

@@ -12,6 +12,8 @@ import LongTermPlan from '@/views/LongTermPlan.vue'
 import DailyPlan from '@/views/DailyPlan.vue'
 import Editor from "@/views/Editor.vue"
 import Knowledge from '@/views/KnowledgeBase.vue'
+import NoteEdit from '@/views/NoteEdit.vue'
+import NoteDetail from '@/views/NoteDetail.vue'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -90,6 +92,18 @@ const router = createRouter({
             path: '/knowledge',
             name: 'Knowledge',
             component: Knowledge
+        },
+        {
+            path: '/note/:id',
+            name: 'NoteDetail',
+            component: NoteDetail,
+            props: true
+        },
+        {
+            path: '/note/:id/edit',
+            name: 'NoteEdit',
+            component: NoteEdit,
+            props: true
         }
     ]
 })

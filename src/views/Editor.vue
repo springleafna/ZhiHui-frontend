@@ -9,7 +9,7 @@
         allowClear
       />
       <div class="header-actions">
-        <a-button type="primary" @click="handlePublish" :loading="publishing">
+        <a-button type="primary" @click="handlePublish" :loading="publishing" size="large" class="publish-btn">
           发布笔记
         </a-button>
       </div>
@@ -150,7 +150,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100%;
+  height: 93vh;
   min-height: 0;
   padding: 20px;
   box-sizing: border-box;
@@ -220,5 +220,11 @@ onUnmounted(() => {
 .category-item.active {
   background-color: #e6f7ff;
   color: #1890ff;
+}
+
+.publish-btn {
+  font-size: 16px;
+  height: 40px;
+  padding: 0 24px;
 }
 </style>
