@@ -14,6 +14,30 @@
                         <i class="icon-folder"></i>
                         <span class="label">{{ category.label }}</span>
                         <span class="count">{{ category.count }}</span>
+                        <a-dropdown 
+                            v-if="category.value !== 'all' && category.value !== 'uncategorized'"
+                            trigger="['click']"
+                            placement="bottomRight"
+                            :getPopupContainer="(triggerNode) => triggerNode.parentNode"
+                            @click.stop
+                        >
+                            <template #overlay>
+                                <a-menu @click="(e) => handleCategoryMenuClick(e, category)">
+                                    <a-menu-item key="edit">
+                                        <edit-outlined />
+                                        <span>编辑</span>
+                                    </a-menu-item>
+                                    <a-menu-divider />
+                                    <a-menu-item key="delete" danger>
+                                        <delete-outlined />
+                                        <span>删除</span>
+                                    </a-menu-item>
+                                </a-menu>
+                            </template>
+                            <span class="more-btn" @click.stop>
+                                <i class="icon-more"></i>
+                            </span>
+                        </a-dropdown>
                     </div>
                 </div>
                 
@@ -47,6 +71,29 @@
                             <span class="note-time">{{ formatDateTime(note.updateTime) }}</span>
                         </div>
                     </div>
+                    <a-dropdown 
+                        trigger="['click']"
+                        placement="bottomRight"
+                        :getPopupContainer="(triggerNode) => triggerNode.parentNode"
+                        @click.stop
+                    >
+                        <template #overlay>
+                            <a-menu @click="(e) => handleNoteMenuClick(e, note)">
+                                <a-menu-item key="edit">
+                                    <edit-outlined />
+                                    <span>编辑</span>
+                                </a-menu-item>
+                                <a-menu-divider />
+                                <a-menu-item key="delete" danger>
+                                    <delete-outlined />
+                                    <span>删除</span>
+                                </a-menu-item>
+                            </a-menu>
+                        </template>
+                        <span class="more-btn" @click.stop>
+                            <i class="icon-more"></i>
+                        </span>
+                    </a-dropdown>
                 </div>
             </template>
             <template v-else>
@@ -136,17 +183,23 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, h, onBeforeUnmount, onActivated, onDeactivated } from 'vue'
 import { useRouter } from 'vue-router'
-import { message, Modal, Empty } from 'ant-design-vue'
+import { message, Modal, Empty, Dropdown as ADropdown, Menu as AMenu, MenuDivider as AMenuDivider, MenuItem as AMenuItem } from 'ant-design-vue'
 import { 
     listAllNoteCategories, 
     createNoteCategory, 
     updateNoteCategory,
     getNotesByCategory,
     getNotesWithoutCategory,
-    getAllNotes
+    getAllNotes,
+    deleteNote,
+    deleteCategory
 } from '@/api/note'
+import { DownOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+
+// 定义组件 emits
+defineEmits(['update:modelValue'])
 
 // 初始化路由
 const router = useRouter()
@@ -170,7 +223,7 @@ const fetchCategories = async () => {
     try {
         const categoryList = await listAllNoteCategories()
         // 保留"全部笔记"和"未分类"两个固定选项
-        categories.value = [
+        const newCategories = [
             { label: '全部笔记', value: 'all', count: 0 },
             { label: '未分类', value: 'uncategorized', count: 0 },
             ...categoryList.map(cat => ({
@@ -179,8 +232,10 @@ const fetchCategories = async () => {
                 count: 0 // 初始化为0，在获取笔记时更新
             }))
         ]
+        categories.value = newCategories
     } catch (error) {
         console.error('获取分类失败:', error)
+        message.error('获取分类失败')
     }
 }
 
@@ -204,9 +259,10 @@ const fetchNotes = async () => {
         }))
         
         // 更新分类数量
-        updateCategoryCounts()
+        await updateCategoryCounts()
     } catch (error) {
         console.error('获取笔记列表失败:', error)
+        message.error('获取笔记列表失败')
     }
 }
 
@@ -216,24 +272,31 @@ const updateCategoryCounts = async () => {
         const allNotes = await getAllNotes()
         const uncategorizedNotes = await getNotesWithoutCategory()
         
+        // 创建新的分类数组
+        const newCategories = [...categories.value]
+        
         // 更新"全部笔记"数量
-        categories.value[0].count = allNotes.length
+        newCategories[0].count = allNotes.length
         
         // 更新"未分类"数量
-        categories.value[1].count = uncategorizedNotes.length
+        newCategories[1].count = uncategorizedNotes.length
         
         // 更新其他分类的数量
-        for (const category of categories.value.slice(2)) {
+        for (let i = 2; i < newCategories.length; i++) {
             try {
-                const categoryNotes = await getNotesByCategory(parseInt(category.value))
-                category.count = categoryNotes.length
+                const categoryNotes = await getNotesByCategory(parseInt(newCategories[i].value))
+                newCategories[i].count = categoryNotes.length
             } catch (error) {
-                console.error(`获取分类 ${category.label} 的笔记数量失败:`, error)
-                category.count = 0
+                console.error(`获取分类 ${newCategories[i].label} 的笔记数量失败:`, error)
+                newCategories[i].count = 0
             }
         }
+        
+        // 一次性更新分类数组
+        categories.value = newCategories
     } catch (error) {
         console.error('更新分类数量失败:', error)
+        message.error('更新分类数量失败')
     }
 }
 
@@ -253,18 +316,62 @@ const filteredNotes = computed(() => notes.value)
 
 // 页面加载时获取数据
 onMounted(async () => {
-    await fetchCategories()
-    await fetchNotes()
+    try {
+        await fetchCategories()
+        await fetchNotes()
+    } catch (error) {
+        console.error('初始化数据失败:', error)
+        message.error('初始化数据失败')
+    }
+})
+
+// 组件被激活时
+onActivated(async () => {
+    try {
+        await fetchCategories()
+        await fetchNotes()
+    } catch (error) {
+        console.error('组件激活时更新数据失败:', error)
+        message.error('组件激活时更新数据失败')
+    }
+})
+
+// 组件被停用时
+onDeactivated(() => {
+    // 清理数据
+    notes.value = []
+    categories.value = [
+        { label: '全部笔记', value: 'all', count: 0 },
+        { label: '未分类', value: 'uncategorized', count: 0 }
+    ]
+    currentCategory.value = 'all'
 })
 
 // 监听分类切换
-watch(currentCategory, async () => {
-    await fetchNotes()
-})
+watch(currentCategory, async (newValue) => {
+    try {
+        await fetchNotes()
+    } catch (error) {
+        console.error('切换分类失败:', error)
+        message.error('切换分类失败')
+    }
+}, { immediate: true })
 
 const goToEditor = () => {
-    router.push('/editor')
+    try {
+        router.push('/editor')
+    } catch (error) {
+        console.error('跳转到编辑器失败:', error)
+    }
 }
+
+// 组件卸载前清理
+onBeforeUnmount(() => {
+    // 清理所有响应式数据
+    notes.value = []
+    categories.value = []
+    currentCategory.value = 'all'
+})
 
 const formRef = ref()
 const loading = ref(false)
@@ -331,19 +438,70 @@ const addCategory = async () => {
     }
 }
 
-const handleDelete = async () => {
+const handleDeleteNote = (note) => {
     Modal.confirm({
         title: '删除确认',
-        content: `确认删除分类 "${currentCategory.value}" 吗？`,
+        content: `确认删除笔记 "${note.title}" 吗？`,
         okType: 'danger',
-        onOk: () => {
-            const index = categories.value.findIndex(c => c.value === currentCategory.value)
-            if (index > -1) {
-                categories.value.splice(index, 1)
-                currentCategory.value = '全部'
+        async onOk() {
+            try {
+                await deleteNote(note.id)
+                message.success('删除成功')
+                await fetchNotes()
+            } catch (error) {
+                console.error('删除笔记失败:', error)
             }
         }
     })
+}
+
+const handleDeleteCategory = (category) => {
+    Modal.confirm({
+        title: '删除确认',
+        content: `确认删除分类 "${category.label}" 吗？该分类下的所有笔记将被移至未分类。`,
+        okType: 'danger',
+        async onOk() {
+            try {
+                await deleteCategory(parseInt(category.value))
+                message.success('删除成功')
+                await fetchCategories()
+                await fetchNotes()
+                if (currentCategory.value === category.value) {
+                    currentCategory.value = 'all'
+                }
+            } catch (error) {
+                console.error('删除分类失败:', error)
+            }
+        }
+    })
+}
+
+// 处理分类菜单点击
+const handleCategoryMenuClick = (e, category) => {
+    e.domEvent.stopPropagation()
+    if (e.key === 'edit') {
+        handleEditCategory(category)
+    } else if (e.key === 'delete') {
+        handleDeleteCategory(category)
+    }
+}
+
+// 处理笔记菜单点击
+const handleNoteMenuClick = (e, note) => {
+    e.domEvent.stopPropagation()
+    if (e.key === 'edit') {
+        handleEditNote(note)
+    } else if (e.key === 'delete') {
+        handleDeleteNote(note)
+    }
+}
+
+// 编辑分类/笔记方法（可后续实现）
+const handleEditCategory = (category) => {
+  message.info('编辑分类功能待实现')
+}
+const handleEditNote = (note) => {
+  message.info('编辑笔记功能待实现')
 }
 </script>
 
@@ -411,33 +569,60 @@ const handleDelete = async () => {
     cursor: pointer;
     transition: all 0.2s;
     color: #666;
-    
-    &:hover {
-        background: #f5f7fa;
-    }
-    
-    &.active {
-        background: #e6f4ff;
-        color: #1677ff;
-        
-        .count {
-            background: rgba(22,119,255,0.1);
-            color: #1677ff;
-        }
-    }
+    position: relative;
+    min-height: 40px;
+    font-size: 15px;
+    background: transparent;
 }
-
-.icon-folder {
-    margin-right: 12px;
-    font-size: 18px;
+.category-item .label {
+    flex: 1;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-
-.count {
-    margin-left: auto;
+.category-item .count {
+    margin-left: 8px;
     padding: 2px 8px;
     border-radius: 4px;
     font-size: 12px;
     background: #f5f5f5;
+    min-width: 24px;
+    text-align: center;
+}
+.category-item .delete-btn {
+    margin-left: 8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    color: #ff4d4f;
+    background: none;
+    border: none;
+    box-shadow: none;
+    font-size: 16px;
+    padding: 0;
+    height: 24px;
+    width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.category-item:hover .delete-btn {
+    opacity: 1;
+}
+.category-item:hover {
+    background: #e6f4ff;
+    color: #1677ff;
+}
+.category-item.active {
+    background: #e6f4ff;
+    color: #1677ff;
+}
+.category-item.active .count {
+    background: rgba(22,119,255,0.1);
+    color: #1677ff;
+}
+.icon-delete {
+    font-size: 16px;
 }
 
 /* 笔记列表优化 */
@@ -451,13 +636,12 @@ const handleDelete = async () => {
     background: #fff;
     border: 1px solid #f0f0f0;
     cursor: pointer;
-    
-    &:hover {
-        background: #fafafa;
-        transform: translateX(4px);
-        border-color: #e6f4ff;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
+}
+.note-item:hover {
+    background: #fafafa;
+    transform: translateX(4px);
+    border-color: #e6f4ff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
 .note-icon {
@@ -520,10 +704,9 @@ const handleDelete = async () => {
     &.primary {
         background: #1677ff;
         color: white;
-        
-        &:hover {
-            background: #4096ff;
-        }
+    }
+    &.primary:hover {
+        background: #4096ff;
     }
 }
 
@@ -592,9 +775,11 @@ const handleDelete = async () => {
 
 /* 主操作按钮优化 */
 .action-button.primary {
-    height: 48px;
-    font-size: 15px;
-    box-shadow: 0 2px 8px rgba(22, 119, 255, 0.2);
+    background: #1677ff;
+    color: white;
+}
+.action-button.primary:hover {
+    background: #4096ff;
 }
 
 /* 空状态样式 */
@@ -604,5 +789,108 @@ const handleDelete = async () => {
     align-items: center;
     height: 100%;
     padding: 40px;
+}
+
+.delete-btn {
+    margin-left: 12px;
+    font-size: 15px;
+    padding: 0 12px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 6px;
+    border: 1px solid #ff4d4f;
+    background: #fff1f0;
+    color: #ff4d4f;
+    font-weight: 500;
+    box-shadow: none;
+    opacity: 1;
+    transition: background 0.2s, color 0.2s;
+}
+
+.delete-btn:hover {
+    background: #ff7875;
+    color: #fff;
+    border-color: #ff7875;
+}
+
+.icon-delete {
+    font-size: 16px;
+    margin-right: 4px;
+}
+
+.more-btn-wrap {
+    margin-left: 8px;
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+.more-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #999;
+    transition: background 0.2s, color 0.2s;
+    font-size: 18px;
+    opacity: 0;
+}
+.category-item:hover .more-btn,
+.category-item:focus-within .more-btn,
+.note-item:hover .more-btn,
+.note-item:focus-within .more-btn {
+    opacity: 1;
+}
+.more-btn:hover {
+    background: #f5f5f5;
+    color: #1677ff;
+}
+.icon-more {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    background: url('data:image/svg+xml;utf8,<svg fill="%23999" viewBox="0 0 1024 1024" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><circle cx="170" cy="512" r="70"/><circle cx="512" cy="512" r="70"/><circle cx="854" cy="512" r="70"/></svg>') no-repeat center center;
+    background-size: 18px 18px;
+}
+.custom-dropdown-menu {
+    min-width: 120px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+}
+.dropdown-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    font-size: 15px;
+    color: #222;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.dropdown-menu-item:hover {
+    background: #f5f5f5;
+    color: #1677ff;
+}
+.dropdown-menu-item.danger {
+    color: #ff4d4f;
+}
+.dropdown-menu-item.danger:hover {
+    background: #fff1f0;
+    color: #ff4d4f;
+}
+.menu-text {
+    margin-left: 4px;
+}
+.dropdown-divider {
+    height: 1px;
+    background: #f0f0f0;
+    margin: 4px 0;
 }
 </style>

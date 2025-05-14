@@ -716,20 +716,21 @@ const confirmAddToMatrix = async () => {
   align-items: center;
   width: 100%;
   transition: all 0.3s;
+  padding: 8px 0;
 }
 
 .task-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .task-info {
-  margin-left: 24px;
+  margin-left: 28px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .task-time {
@@ -739,13 +740,18 @@ const confirmAddToMatrix = async () => {
 
 .task-actions {
   display: flex;
-  gap: 4px;
+  gap: 8px;
   opacity: 0;
   transition: opacity 0.3s;
 }
 
 .task-item:hover .task-actions {
   opacity: 1;
+}
+
+.task-actions :deep(.ant-btn) {
+  font-size: 16px;
+  padding: 8px;
 }
 
 .task-completed {
@@ -758,15 +764,27 @@ const confirmAddToMatrix = async () => {
 }
 
 :deep(.ant-list-item) {
-  padding: 12px 24px;
+  padding: 16px 24px;
 }
 
 :deep(.ant-checkbox-wrapper) {
-  font-size: 14px;
+  font-size: 15px;
 }
 
 :deep(.ant-tag) {
   margin: 0;
+  font-size: 13px;
+  padding: 2px 8px;
+}
+
+.task-description {
+  color: #8c8c8c;
+  font-size: 13px;
+  margin-left: 8px;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sidebar {
@@ -928,15 +946,5 @@ const confirmAddToMatrix = async () => {
 
 .generate-btn:hover {
   background: #40a9ff;
-}
-
-.task-description {
-  color: #8c8c8c;
-  font-size: 12px;
-  margin-left: 8px;
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 </style>

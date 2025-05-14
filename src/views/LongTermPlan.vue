@@ -852,27 +852,29 @@ const handleTaskComplete = async (task, completed) => {
 
 <style scoped>
 .long-term-plan {
-    padding: 24px;
+    padding: 16px;
     background: #f5f9ff;
     min-height: calc(100vh - 48px);
 }
 
 .main-content {
     display: flex;
-    gap: 24px;
+    gap: 16px;
     height: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
 }
 
 .task-list-container {
-    flex: 1;
+    flex: 2;
     min-width: 0;
 }
 
 .task-detail-container {
-    width: 400px;
+    width: 380px;
     background: white;
     border-radius: 8px;
-    padding: 24px;
+    padding: 20px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
@@ -927,17 +929,23 @@ const handleTaskComplete = async (task, completed) => {
 
 .custom-tabs {
     background: white;
-    padding: 16px;
-    border-radius: 8px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 
 .task-list-item {
-    padding: 16px 24px;
-    border-radius: 4px;
-    margin-bottom: 8px;
+    padding: 20px 24px;
+    border-radius: 8px;
+    margin-bottom: 12px;
     background: #fff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s;
+}
+
+.task-list-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .task-item {
@@ -955,19 +963,34 @@ const handleTaskComplete = async (task, completed) => {
     white-space: nowrap;
 }
 
+.task-left :deep(.ant-checkbox-wrapper) {
+    font-size: 16px;
+}
+
 .task-right {
     flex-shrink: 0;
-    margin-left: 16px;
+    margin-left: 24px;
+}
+
+.task-right :deep(.ant-tag) {
+    padding: 4px 8px;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+.task-right :deep(.ant-btn-link) {
+    font-size: 16px;
+    padding: 8px;
 }
 
 .task-meta {
-    margin-top: 8px;
-    padding-left: 22px;
+    margin-top: 12px;
+    padding-left: 24px;
 }
 
 .due-date {
     color: #666;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .task-completed {
@@ -1019,20 +1042,24 @@ const handleTaskComplete = async (task, completed) => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 8px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
     border-bottom: 1px solid #f0f0f0;
 }
 
 .section-header h3 {
     margin: 0;
-    font-size: 16px;
+    font-size: 18px;
     color: #333;
+    font-weight: 500;
 }
 
 .task-count {
-    font-size: 14px;
-    color: #999;
+    font-size: 15px;
+    color: #666;
+    background: #f5f7fa;
+    padding: 4px 12px;
+    border-radius: 16px;
 }
 
 .completed-section {
@@ -1112,13 +1139,13 @@ const handleTaskComplete = async (task, completed) => {
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    padding-right: 16px;
+    padding-right: 24px;
 }
 
 .category-title {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
-    color: rgba(0, 0, 0, 0.85);
+    color: #333;
 }
 
 .category-actions {
@@ -1133,21 +1160,12 @@ const handleTaskComplete = async (task, completed) => {
 }
 
 :deep(.ant-collapse-header) {
-    align-items: center !important;
-    padding: 12px 16px !important;
+    padding: 16px 24px !important;
+    font-size: 16px !important;
 }
 
-:deep(.ant-collapse-header:hover) .category-actions {
-    opacity: 1;
-}
-
-.category-actions {
-    opacity: 0.4;
-    transition: opacity 0.3s;
-}
-
-:deep(.ant-collapse-header-text) {
-    flex: 1;
+:deep(.ant-collapse-content-box) {
+    padding: 24px !important;
 }
 
 .empty-state {
@@ -1175,5 +1193,11 @@ const handleTaskComplete = async (task, completed) => {
 :deep(.ant-empty-image) {
     height: 100px;
     margin-bottom: 24px;
+}
+
+.add-category-btn {
+    margin-top: 16px;
+    height: 48px;
+    font-size: 16px;
 }
 </style>
