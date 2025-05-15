@@ -1,7 +1,13 @@
 <template>
     <div class="note-detail-container">
       <div class="note-header">
-        <h1 class="note-title">{{ note.title }}</h1>
+        <div class="title-row">
+          <h1 class="note-title">{{ note.title }}</h1>
+          <a-button type="primary" @click="handleEdit" class="edit-btn">
+            <template #icon><EditOutlined /></template>
+            编辑
+          </a-button>
+        </div>
         <div class="note-meta">
           <span class="note-category" v-if="note.categoryName">{{ note.categoryName }}</span>
           <span class="note-time">{{ formatDateTime(note.updateTime) }}</span>
@@ -29,34 +35,45 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { getNoteDetail } from '@/api/note'
+import { EditOutlined } from '@ant-design/icons-vue'
 import MarkdownIt from 'markdown-it'
 import anchor from 'markdown-it-anchor'
 import tocPlugin from 'markdown-it-toc-done-right'
 
 const route = useRoute()
+const router = useRouter()
 const note = ref({})
 const tocFixed = ref(false)
 const showToc = ref(true)
 const tocHtml = ref('') // 使用ref存储目录HTML
+
+// 编辑按钮点击事件
+const handleEdit = () => {
+  const noteId = route.params.id
+  router.push(`/note/${noteId}/edit`)
+}
 
 // 初始化 markdown-it
 const md = new MarkdownIt({
   html: true,
   breaks: true,
   linkify: true,
-  typographer: true
+  typographer: true,
+  // 确保生成带有id的标题
+  header: { level: [1, 2, 3, 4, 5, 6], slugify: (s) => s.toLowerCase().replace(/\s+/g, '-') }
 })
 
-// 配置锚点插件
+// 配置锚点插件 - 确保标题生成ID
 md.use(anchor, {
   permalink: true,
   permalinkBefore: true,
   permalinkSymbol: '#',
   permalinkSpace: false,
-  slugify: (s) => s.toLowerCase().replace(/\s+/g, '-')
+  level: [1, 2, 3, 4, 5, 6],
+  slugify: (s) => s.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '')
 })
 
 // 配置目录插件（关键修复部分）
@@ -68,31 +85,20 @@ md.use(tocPlugin, {
   linkClass: 'toc-list-link',
   level: [1, 2, 3, 4],
   listType: 'ul',
+  pattern: /^\[\[toc\]\]|\[toc\]$/im,  // 支持[[toc]]和[toc]格式
   callback: function(html) {
     // 将生成的目录HTML存入响应式变量
-    tocHtml.value = html
+    if (html && html.length > 30) { // 检查生成的HTML是否有实际内容
+      tocHtml.value = html
+      showToc.value = true
+    } else {
+      showToc.value = false
+    }
+    console.log('目录生成回调:', html)
     // 返回空字符串避免在内容中显示目录
     return ''
   }
 })
-
-// 渲染后的内容（自动添加目录占位符）
-const renderedContent = computed(() => {
-  if (!note.value.content) return ''
-  // 动态添加[[toc]]占位符到内容开头
-  return md.render(`[[toc]]\n${note.value.content}`)
-})
-
-// 格式化时间
-const formatDateTime = (dateTimeStr) => {
-  if (!dateTimeStr) return ''
-  const date = new Date(dateTimeStr)
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  return `${month}-${day} ${hours}:${minutes}`
-}
 
 // 获取笔记详情
 const fetchNoteDetail = async () => {
@@ -104,10 +110,116 @@ const fetchNoteDetail = async () => {
     }
     const data = await getNoteDetail(noteId)
     note.value = data
+    
+    // 加载笔记内容后，检查是否有标题
+    if (data.content) {
+      // 检查Markdown标题或HTML标题
+      const hasMarkdownHeadings = /^#{1,6}\s+.+$/m.test(data.content)
+      const hasHtmlHeadings = /<h[1-6][^>]*>.*?<\/h[1-6]>/i.test(data.content)
+      showToc.value = hasMarkdownHeadings || hasHtmlHeadings
+      
+      if (hasMarkdownHeadings) {
+        // 对于Markdown内容，使用常规处理方式
+        const contentWithToc = `[[toc]]\n\n${data.content}`
+        md.render(contentWithToc)
+      } else if (hasHtmlHeadings) {
+        // HTML内容需要特殊处理
+        processHtmlContent(data.content)
+      }
+    }
   } catch (error) {
     console.error('获取笔记详情失败:', error)
     message.error('获取笔记详情失败')
   }
+}
+
+// 处理HTML格式的内容并生成目录
+const processHtmlContent = (htmlContent) => {
+  try {
+    // 创建临时DOM解析HTML
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = htmlContent
+    
+    // 提取所有标题元素
+    const headings = tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6')
+    
+    if (headings.length === 0) {
+      showToc.value = false
+      return
+    }
+    
+    // 生成目录HTML
+    let tocItems = '<ul class="toc-list-items">'
+    
+    headings.forEach((heading, index) => {
+      // 为标题添加ID（如果没有）
+      if (!heading.id) {
+        heading.id = `heading-${index}`
+      }
+      
+      const level = parseInt(heading.tagName.substring(1))
+      const text = heading.textContent
+      const id = heading.id
+      
+      // 添加目录项，根据标题级别添加缩进样式
+      tocItems += `<li class="toc-list-item" style="padding-left: ${(level-1) * 16}px">
+        <a class="toc-list-link" href="#${id}">${text}</a>
+      </li>`
+    })
+    
+    tocItems += '</ul>'
+    
+    // 设置目录HTML
+    tocHtml.value = `<nav id="toc" class="toc-list">${tocItems}</nav>`
+    showToc.value = true
+    
+    // 更新内容中的标题（添加ID）
+    note.value.content = tempDiv.innerHTML
+  } catch (error) {
+    console.error('处理HTML内容失败:', error)
+    showToc.value = false
+  }
+}
+
+// 渲染后的内容
+const renderedContent = computed(() => {
+  if (!note.value.content) return ''
+  
+  // 检查是否为HTML内容
+  const isHtmlContent = /<\/?[a-z][\s\S]*>/i.test(note.value.content)
+  
+  if (isHtmlContent) {
+    // 如果是HTML内容，直接返回
+    return note.value.content
+  } else {
+    // 如果是Markdown内容，进行渲染
+    // 先判断content中是否至少有一个标题
+    const hasHeadings = /^#{1,6}\s+.+$/m.test(note.value.content)
+    
+    // 如果有标题，先尝试生成目录
+    if (hasHeadings) {
+      // 明确添加[[toc]]标记并渲染一次来生成目录
+      const contentWithToc = `[[toc]]\n\n${note.value.content}`
+      md.render(contentWithToc)
+    } else {
+      // 没有标题，不显示目录
+      showToc.value = false
+    }
+    
+    // 再渲染实际内容
+    return md.render(note.value.content)
+  }
+})
+
+// 格式化时间
+const formatDateTime = (dateTimeStr) => {
+  if (!dateTimeStr) return ''
+  const date = new Date(dateTimeStr)
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${month}-${day} ${hours}:${minutes}`
 }
 
 onMounted(() => {
@@ -128,12 +240,23 @@ onMounted(() => {
   border-bottom: 1px solid #f0f0f0;
 }
 
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
 .note-title {
   font-size: 28px;
   color: #1a1a1a;
-  margin: 0 0 16px;
+  margin: 0;
   font-weight: 600;
   line-height: 1.4;
+}
+
+.edit-btn {
+  margin-left: 16px;
 }
 
 .note-meta {
