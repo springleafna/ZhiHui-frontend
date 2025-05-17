@@ -26,7 +26,7 @@
   import "aieditor/dist/style.css"
   import {onMounted, onUnmounted, ref} from "vue";
   import { message } from 'ant-design-vue';
-  import { getNoteDetail } from '@/api/note';
+  import { getNoteDetail, updateNote } from '@/api/note';
   import { useRouter, useRoute } from 'vue-router';
   
   const router = useRouter();
@@ -65,7 +65,11 @@
     updating.value = true;
     try {
       const noteId = Number(route.params.id);
-      await getNoteDetail(noteId); // 临时使用getNoteDetail替代updateNote，需要后端提供updateNote API
+      await updateNote({
+        noteId,
+        title: noteTitle.value,
+        content
+      });
       message.success('更新成功');
       router.push('/notes');
     } catch (error) {

@@ -86,21 +86,21 @@
         <div class="card-content">
           <div class="stats-container">
             <div class="stat-item">
-              <div class="stat-value">32</div>
+              <div class="stat-value">{{ noteCount }}</div>
               <div class="stat-label">笔记数量</div>
             </div>
             <div class="stat-item">
-              <div class="stat-value">8</div>
+              <div class="stat-value">{{ dailyTaskCount }}</div>
               <div class="stat-label">今日任务数</div>
             </div>
             <div class="stat-item">
-              <div class="stat-value">64</div>
+              <div class="stat-value">{{ longTermTaskCount }}</div>
               <div class="stat-label">长期任务数</div>
             </div>
           </div>
           <div class="stats-container second-row">
             <div class="stat-item">
-              <div class="stat-value">15</div>
+              <div class="stat-value">{{ memoCount }}</div>
               <div class="stat-label">便签数量</div>
             </div>
             <div class="stat-item">
@@ -190,8 +190,8 @@
           <div class="icon-btn"><i class="iconfont icon-chat"></i></div>
         </div>
         <div class="card-content">
-          <div class="ai-message">需要帮助优化你的学习计划吗？</div>
-          <button class="start-btn">开始对话</button>
+          <div class="ai-message">需要帮助创建你的任务吗？</div>
+          <button class="start-btn" @click="openAIChat">开始对话</button>
         </div>
       </div>
 
@@ -311,13 +311,49 @@
         placeholder="编辑笔记内容..."
       ></textarea>
     </a-modal>
+
+    <!-- AI对话弹窗 -->
+    <a-modal
+      v-model:open="aiDialogVisible"
+      title="AI助手"
+      :footer="null"
+      width="800px"
+      class="ai-chat-modal"
+    >
+      <div class="chat-container">
+        <div class="chat-messages" ref="chatMessagesRef">
+          <div v-for="(message, index) in chatMessages" :key="index" 
+               :class="['message', message.type === 'ai' ? 'ai-message' : 'user-message']">
+            <div class="message-content">{{ message.content }}</div>
+          </div>
+        </div>
+        <div class="chat-input">
+          <a-input
+            v-model:value="userInput"
+            placeholder="请输入您的问题..."
+            @pressEnter="handleSendMessage"
+          >
+            <template #suffix>
+              <a-button type="primary" @click="handleSendMessage" :loading="loading">
+                发送
+              </a-button>
+            </template>
+          </a-input>
+        </div>
+      </div>
+    </a-modal>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { insertMemo, getMemoList, updateMemo, deleteMemo } from '@/api/memo'
 import { message } from 'ant-design-vue'
+import { getNoteCount } from '@/api/note'
+import { getDailyTaskCount } from '@/api/dailyTask'
+import { getLongTermTaskCount } from '@/api/longTermTask'
+import { getMemoCount } from '@/api/memo'
+import { generateTask } from '@/api/ai'
 
 // 快速笔记内容
 const memoContent = ref('')
@@ -330,6 +366,11 @@ const editingMemo = ref({
   memoId: null,
   content: ''
 })
+
+const noteCount = ref(0)
+const dailyTaskCount = ref(0)
+const longTermTaskCount = ref(0)
+const memoCount = ref(0)
 
 // 颜色数组
 const colors = [
@@ -394,7 +435,10 @@ const handleUpdateMemo = async () => {
     })
     message.success('更新成功')
     memoDialogVisible.value = false
-    fetchMemoList() // 刷新列表
+    await Promise.all([
+      fetchMemoList(), // 刷新列表
+      fetchStats() // 更新统计数据
+    ])
   } catch (error) {
     console.error('更新笔记失败:', error)
   }
@@ -413,7 +457,10 @@ const handlePublishMemo = async () => {
     })
     message.success('发布成功')
     memoContent.value = ''
-    fetchMemoList() // 刷新列表
+    await Promise.all([
+      fetchMemoList(), // 刷新列表
+      fetchStats() // 更新统计数据
+    ])
   } catch (error) {
     console.error('发布笔记失败:', error)
   }
@@ -424,15 +471,91 @@ const handleDeleteMemo = async (memoId) => {
   try {
     await deleteMemo(memoId)
     message.success('删除成功')
-    fetchMemoList() // 刷新列表
+    await Promise.all([
+      fetchMemoList(), // 刷新列表
+      fetchStats() // 更新统计数据
+    ])
   } catch (error) {
     console.error('删除笔记失败:', error)
   }
 }
 
-// 页面加载时获取笔记列表
+const fetchStats = async () => {
+  try {
+    const [noteRes, dailyTaskRes, longTermTaskRes, memoRes] = await Promise.all([
+      getNoteCount(),
+      getDailyTaskCount(),
+      getLongTermTaskCount(),
+      getMemoCount()
+    ])
+    
+    noteCount.value = noteRes
+    dailyTaskCount.value = dailyTaskRes
+    longTermTaskCount.value = longTermTaskRes
+    memoCount.value = memoRes
+  } catch (error) {
+    console.error('获取统计数据失败:', error)
+  }
+}
+
+// AI对话相关
+const aiDialogVisible = ref(false)
+const userInput = ref('')
+const chatMessages = ref([])
+const loading = ref(false)
+const chatMessagesRef = ref(null)
+
+// 打开AI对话
+const openAIChat = () => {
+  aiDialogVisible.value = true
+  chatMessages.value = [{
+    type: 'ai',
+    content: '你好！我是你的AI助手，我可以帮你创建你的任务，请告诉我你的需求。'
+  }]
+}
+
+// 发送消息
+const handleSendMessage = async () => {
+  if (!userInput.value.trim()) {
+    message.warning('请输入内容')
+    return
+  }
+
+  // 添加用户消息
+  chatMessages.value.push({
+    type: 'user',
+    content: userInput.value.trim()
+  })
+
+  const currentInput = userInput.value
+  userInput.value = ''
+  loading.value = true
+
+  try {
+    // 调用AI接口
+    const response = await generateTask(currentInput)
+    
+    // 添加AI回复
+    chatMessages.value.push({
+      type: 'ai',
+      content: response
+    })
+  } catch (error) {
+    message.error('获取AI回复失败')
+  } finally {
+    loading.value = false
+    // 滚动到底部
+    await nextTick()
+    if (chatMessagesRef.value) {
+      chatMessagesRef.value.scrollTop = chatMessagesRef.value.scrollHeight
+    }
+  }
+}
+
+// 页面加载时获取笔记列表和统计数据
 onMounted(() => {
   fetchMemoList()
+  fetchStats()
 })
 </script>
 
@@ -997,5 +1120,75 @@ onMounted(() => {
 .empty-state p {
   font-size: 14px;
   margin: 0;
+}
+
+/* AI对话弹窗样式 */
+.ai-chat-modal :deep(.ant-modal-body) {
+  padding: 0;
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background-color: #f5f7fa;
+}
+
+.message {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-content {
+  max-width: 80%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.user-message {
+  align-items: flex-end;
+}
+
+.user-message .message-content {
+  background-color: #1890ff;
+  color: white;
+}
+
+.ai-message {
+  align-items: flex-start;
+}
+
+.ai-message .message-content {
+  background-color: white;
+  color: #333;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.chat-input {
+  padding: 16px;
+  background-color: white;
+  border-top: 1px solid #f0f0f0;
+}
+
+.chat-input :deep(.ant-input) {
+  border-radius: 20px;
+  padding-right: 100px;
+}
+
+.chat-input :deep(.ant-input-suffix) {
+  right: 8px;
+}
+
+.chat-input :deep(.ant-btn) {
+  border-radius: 16px;
 }
 </style> 

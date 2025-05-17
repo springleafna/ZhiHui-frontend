@@ -181,3 +181,37 @@ export const getNoteDetail = async (noteId) => {
     throw err
   }
 }
+
+/**
+ * 更新笔记
+ * @param {Object} noteData - 笔记数据
+ * @param {number} noteData.noteId - 笔记ID
+ * @param {string} noteData.title - 笔记标题
+ * @param {string} noteData.content - 笔记内容(Markdown格式)
+ */
+export const updateNote = async (noteData) => {
+  try {
+    const res = await request.put('/note/updateNote', noteData)
+    return res
+  } catch (err) { 
+    console.error('更新笔记失败:', err)
+    message.error('更新笔记失败')
+    throw err
+  }
+}
+
+/**
+ * 获取笔记数量 
+ * @returns {Promise<number>} 笔记数量
+ */
+export const getNoteCount = async () => {
+  try {
+    const res = await request.get('/note/count')
+    return res
+  } catch (err) {
+    console.error('获取笔记数量失败:', err)
+    message.error('获取笔记数量失败')
+    throw err
+  }
+}
+

@@ -130,3 +130,18 @@ export const formatTime = (time) => {
   // 如果是 Date 对象，转换为 dayjs 后格式化
   return dayjs(time).format('HH:mm:ss');
 }
+
+/**
+ * 获取每日任务数量
+ * @returns {Promise<number>} 每日任务数量
+ */
+export const getDailyTaskCount = async () => {
+  try {
+    const res = await request.get('/dailyTask/count')
+    return res
+  } catch (err) {
+    console.error('获取每日任务数量失败:', err)
+    message.error('获取每日任务数量失败')
+    throw err
+  }
+}

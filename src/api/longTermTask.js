@@ -159,3 +159,18 @@ export const completeLongTermTask = async (taskId, completed) => {
     throw err
   }
 }
+
+/**
+ * 获取长期任务数量
+ * @returns {Promise<number>} 长期任务数量
+ */
+export const getLongTermTaskCount = async () => {
+  try {
+    const res = await request.get('/longTermTask/countAll')
+    return res
+  } catch (err) {
+    console.error('获取长期任务数量失败:', err)
+    message.error('获取长期任务数量失败')
+    throw err
+  }
+}

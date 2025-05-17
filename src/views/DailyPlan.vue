@@ -164,20 +164,27 @@
             <span>AI 智能助手</span>
           </div>
           <div class="ai-content">
-            <div class="ai-suggestions">
-              <p class="ai-tip">建议优先处理：</p>
-              <div class="suggestion-item" v-for="(item, index) in aiSuggestions" :key="index">
-                <BulbOutlined />
-                <span class="suggestion-text">{{ item }}</span>
-              </div>
-            </div>
-            <a-button type="primary" block class="generate-btn" @click="askAI">
-              生成今日计划
+            <a-button type="primary" block class="generate-btn" @click="askAI" :loading="aiLoading">
+              总结今日计划
             </a-button>
           </div>
         </a-card>
       </div>
     </div>
+
+    <!-- AI总结结果弹窗 -->
+    <a-modal
+      v-model:open="aiModalVisible"
+      title="AI 总结结果"
+      :footer="null"
+      width="600px"
+    >
+      <div class="ai-result-content">
+        <a-spin :spinning="aiLoading">
+          <div class="summary-content">{{ aiSummary }}</div>
+        </a-spin>
+      </div>
+    </a-modal>
 
     <!-- 四象限弹窗 -->
     <a-modal
@@ -275,6 +282,7 @@ import {
   formatDate,
   formatTime 
 } from '@/api/dailyTask'
+import { summarizeTask } from '@/api/ai'
 
 // 任务列表数据
 const tasks = ref([])
@@ -495,25 +503,6 @@ onMounted(async () => {
   await fetchTasks(selectedDate.value)
 })
 
-// AI建议
-const aiSuggestions = ref([
-  '建议将"产品周会"提前15分钟开始，以便充分准备'
-])
-
-// 获取AI建议
-const askAI = () => {
-  message.loading('正在分析您的任务...')
-  // 这里可以调用实际的AI接口
-  setTimeout(() => {
-    aiSuggestions.value = [
-      '检测到连续会议，建议预留中场休息时间',
-      '建议设置任务提醒，避免错过重要节点',
-      '本周任务量偏高，建议合理分配时间'
-    ]
-    message.success('已更新建议')
-  }, 1500)
-}
-
 // 查看历史记录
 const showHistory = () => {
   message.info('查看历史记录')
@@ -526,16 +515,29 @@ const exportTasks = () => {
     date: dayjs().format('YYYY-MM-DD'),
     tasks: tasks.value
   }
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `任务计划_${dayjs().format('YYYY-MM-DD')}.json`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
-  message.success('导出成功')
+  return data
+}
+
+// AI相关状态
+const aiLoading = ref(false)
+const aiSummary = ref('')
+const aiModalVisible = ref(false)
+
+// 调用AI总结
+const askAI = async () => {
+  try {
+    aiLoading.value = true
+    const taskData = exportTasks() // 获取任务数据
+    const prompt = encodeURIComponent(JSON.stringify(taskData)) // 对JSON字符串进行URL编码
+    const result = await summarizeTask(prompt)
+    aiSummary.value = result
+    aiModalVisible.value = true // 显示结果弹窗
+  } catch (error) {
+    console.error('AI总结失败:', error)
+    message.error('AI总结失败')
+  } finally {
+    aiLoading.value = false
+  }
 }
 
 // 处理开始时间变化
@@ -860,14 +862,13 @@ const confirmAddToMatrix = async () => {
 }
 
 .task-indicator.all-completed {
-  background-color: #52c41a; /* 绿色 */
+  background-color: #52c41a;
 }
 
 .task-indicator.not-all-completed {
-  background-color: #ff4d4f; /* 红色 */
+  background-color: #ff4d4f;
 }
 
-/* 优化日历头部选择器样式，让年月日对齐 */
 .calendar-card :deep(.ant-picker-header) {
   display: flex;
   align-items: center;
@@ -885,14 +886,13 @@ const confirmAddToMatrix = async () => {
   align-items: center;
 }
 
-/* 鼠标悬停在有任务的日期上时的样式 */
 .date-cell:hover .task-indicator {
   transform: scale(1.2);
   background-color: #40a9ff;
 }
 
 .ai-assistant-card {
-  background: #fff;
+  margin-top: 16px;
 }
 
 .ai-header {
@@ -900,51 +900,33 @@ const confirmAddToMatrix = async () => {
   align-items: center;
   gap: 8px;
   margin-bottom: 16px;
-  color: #000;
+  font-weight: 500;
 }
 
-.ai-content {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.ai-tip {
-  color: #666;
-  margin: 0 0 12px;
-  font-size: 14px;
-}
-
-.ai-suggestions {
+.ai-content .generate-btn {
   margin-bottom: 16px;
 }
 
-.suggestion-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 8px 0;
-  color: #333;
+.ai-content .ai-summary {
+  background-color: #f5f5f5;
+  padding: 12px;
+  border-radius: 4px;
 }
 
-.suggestion-item :deep(.anticon) {
-  margin-top: 4px;
-  color: #666;
-}
-
-.suggestion-text {
-  font-size: 14px;
+.ai-content .summary-content {
+  white-space: pre-wrap;
   line-height: 1.6;
 }
 
-.generate-btn {
-  background: #1890ff;
-  border: none;
-  height: 40px;
-  font-size: 14px;
+.ai-result-content {
+  padding: 16px;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
-.generate-btn:hover {
-  background: #40a9ff;
+.ai-result-content .summary-content {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-size: 14px;
 }
 </style>

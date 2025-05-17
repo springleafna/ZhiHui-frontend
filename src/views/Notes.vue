@@ -313,7 +313,11 @@ const formatDateTime = (dateTimeStr) => {
 }
 
 // 监听分类变化
-const filteredNotes = computed(() => notes.value)
+const filteredNotes = computed(() => {
+    return [...notes.value].sort((a, b) => {
+        return new Date(b.updateTime) - new Date(a.updateTime)
+    })
+})
 
 // 页面加载时获取数据
 onMounted(async () => {

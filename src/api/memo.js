@@ -65,3 +65,18 @@ export const updateMemo = async (memoData) => {
     throw err
   }
 }
+
+/**
+ * 获取便签数量
+ * @returns {Promise<number>} 便签数量
+ */
+export const getMemoCount = async () => {
+  try {
+    const res = await request.get('/memo/count')
+    return res
+  } catch (err) {
+    console.error('获取便签数量失败:', err)
+    message.error('获取便签数量失败')
+    throw err
+  }
+}

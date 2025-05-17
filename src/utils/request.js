@@ -3,7 +3,7 @@ import { message } from 'ant-design-vue'
 
 const request = axios.create({
   baseURL: 'http://localhost:9080/api',
-  timeout: 15000,
+  timeout: 150000,
   headers: {
     'Content-Type': 'application/json;charset=utf-8',
     'Accept': 'application/json'
