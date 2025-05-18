@@ -69,22 +69,6 @@
 
                 <button type="submit" class="register-button" :disabled="!registerForm.agreeTerms">注册</button>
 
-                <div class="divider">
-                    <span>或</span>
-                </div>
-
-                <div class="social-login">
-                    <button class="social-button wechat">
-                        <WechatIcon />
-                    </button>
-                    <button class="social-button qq">
-                        <QQIcon />
-                    </button>
-                    <button class="social-button weibo">
-                        <WeiboIcon />
-                    </button>
-                </div>
-
                 <div class="login-link">
                     已有账号？ <a href="#" @click.prevent="goToLogin">立即登录</a>
                 </div>
@@ -102,9 +86,6 @@ import { useRouter } from 'vue-router'
 import { register } from '@/api/user'
 import { message } from 'ant-design-vue'
 import LogoIcon from '@/assets/logo-brain.svg'
-import WechatIcon from '@/assets/icon-wechat.svg'
-import QQIcon from '@/assets/icon-qq.svg'
-import WeiboIcon from '@/assets/icon-weibo.svg'
 import EyeIcon from '@/assets/icon-eye.svg'
 import EyeOffIcon from '@/assets/icon-eye-off.svg'
 
@@ -190,7 +171,6 @@ const goToLogin = () => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: #f5f7fa;
     padding: 20px;
 }
 
@@ -318,64 +298,6 @@ const goToLogin = () => {
 .register-button:disabled {
     background-color: #a0cfff;
     cursor: not-allowed;
-}
-
-.divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    color: #909399;
-    font-size: 14px;
-    margin: 20px 0;
-}
-
-.divider::before,
-.divider::after {
-    content: '';
-    flex: 1;
-    border-bottom: 1px solid #dcdfe6;
-}
-
-.divider span {
-    padding: 0 16px;
-}
-
-.social-login {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-}
-
-.social-button {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 1px solid #dcdfe6;
-    background: white;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.social-button :deep(svg) {
-    width: 32px;
-    height: 32px;
-}
-
-.social-button:hover {
-    background-color: #f5f7fa;
-    border-color: #c0c4cc;
-}
-
-.social-button.wechat :deep(svg) {
-    color: #07c160;
-}
-
-.social-button.qq :deep(svg) {
-    color: #2a6ebb;
-}
-
-.social-button.weibo :deep(svg) {
-    color: #ff6b6b;
 }
 
 .login-link {

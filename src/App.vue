@@ -56,61 +56,6 @@ html, body {
   background: transparent;
 }
 
-.main-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-.main-content::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-  margin-bottom: 10px;
-}
-
-.main-content::-webkit-scrollbar-thumb {
-  background: #bbb;
-  border-radius: 10px;
-}
-
-.main-content::-webkit-scrollbar-thumb:hover {
-  background: #999;
-}
-
-/* 应用容器样式 */
-.app-container {
-  display: flex;
-  width: 100%;
-  position: relative;
-  background-color: #f5f9ff;
-}
-
-.app-container {
-  height: calc(100vh - 60px);
-  margin-top: 40px;
-}
-
-.app-container.no-layout {
-  height: 100vh;
-  margin-top: 0;
-}
-
-/* 主内容区域样式 */
-.main-content {
-  flex: 1;
-  overflow-y: auto;
-  background-color: #f5f9ff;
-  margin-left: 74px;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 20px 0 50px 0;
-  position: relative;
-}
-
-.main-content.sidebar-expanded {
-  margin-left: 240px;
-}
-
-.main-content.no-margin {
-  margin-left: 0;
-}
 </style>
 
 <style scoped>
@@ -120,7 +65,6 @@ html, body {
   width: 100%;
   position: relative;
   margin-top: 40px; /* 为固定的Header留出空间 */
-  background-color: #f5f9ff;
 }
 
 .app-container.no-layout {
@@ -131,31 +75,15 @@ html, body {
 .main-content {
   flex: 1;
   overflow-y: auto; /* 只在主内容区域允许滚动 */
-  background-color: #f5f9ff;
-  margin-left: 74px; /* 设置为收缩状态的SidePanel宽度 */
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  height: 100%;
-  /* 确保内容底部有足够的空间 */
-  padding-bottom: 50px;
   /* 设置合适的内边距 */
   padding-top: 20px;
   position: relative;
+  margin-left: 74px; /* 设置为收缩状态的SidePanel宽度 */
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .main-content.sidebar-expanded {
   margin-left: 240px; /* 设置为展开状态的SidePanel宽度 */
 }
 
-.main-content.no-margin {
-  margin-left: 0;
-}
-
-/* 添加全局背景色 */
-:root {
-  background-color: #f5f9ff;
-}
-
-body {
-  background-color: #f5f9ff;
-}
 </style>
