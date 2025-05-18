@@ -3,13 +3,12 @@ import { message } from 'ant-design-vue'
 
 /**
  * 用户注册
- * @param {Object} params - 包含username, password, phone/email等字段
+ * @param {Object} params - 包含username, password, email, phone等字段
  */
 export const register = async (params) => {
     try {
       const res = await request.post('/user/register', params);
-      message.success('注册成功');
-      return res.data;
+      return res;
     } catch (err) {
       console.error('注册失败:', err);
       throw err;

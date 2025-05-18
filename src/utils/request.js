@@ -15,7 +15,7 @@ request.interceptors.request.use(
   config => {
     console.log('发送请求:', config.url, config.data)
     const token = localStorage.getItem('token')
-    if (token) {
+    if (token && config.url !== '/user/register') {
       config.headers['Authorization'] = `${token}`
     }
     return config
@@ -35,6 +35,8 @@ request.interceptors.response.use(
     } else {
       message.error(res.message)
       console.log(res.message || '操作失败')
+      // 当code不是0时，抛出错误
+      return Promise.reject(new Error(res.message || '操作失败'));
     }
   },
   error => {

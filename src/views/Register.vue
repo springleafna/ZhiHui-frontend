@@ -21,8 +21,8 @@
                 <div class="form-group">
                     <label>账号</label>
                     <input 
-                        type="email" 
-                        v-model="registerForm.email" 
+                        type="text" 
+                        v-model="registerForm.account" 
                         placeholder="请输入手机号/邮箱"
                         class="form-input"
                     />
@@ -99,6 +99,8 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { register } from '@/api/user'
+import { message } from 'ant-design-vue'
 import LogoIcon from '@/assets/logo-brain.svg'
 import WechatIcon from '@/assets/icon-wechat.svg'
 import QQIcon from '@/assets/icon-qq.svg'
@@ -112,15 +114,68 @@ const showConfirmPassword = ref(false)
 
 const registerForm = reactive({
     username: '',
-    email: '',
+    account: '', // 用于存储手机号或邮箱
     password: '',
     confirmPassword: '',
     agreeTerms: false
 })
 
-const handleRegister = () => {
-    // 处理注册逻辑
-    console.log('Register form submitted:', registerForm)
+// 验证手机号
+const isValidPhone = (phone) => {
+    return /^1[3-9]\d{9}$/.test(phone)
+}
+
+// 验证邮箱
+const isValidEmail = (email) => {
+    return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)
+}
+
+const handleRegister = async () => {
+    // 表单验证
+    if (!registerForm.username) {
+        message.error('请输入用户名')
+        return
+    }
+    if (!registerForm.account) {
+        message.error('请输入手机号或邮箱')
+        return
+    }
+    if (!registerForm.password) {
+        message.error('请输入密码')
+        return
+    }
+    if (registerForm.password !== registerForm.confirmPassword) {
+        message.error('两次输入的密码不一致')
+        return
+    }
+    if (!registerForm.agreeTerms) {
+        message.error('请阅读并同意服务条款和隐私政策')
+        return
+    }
+
+    // 判断是手机号还是邮箱
+    const isPhone = isValidPhone(registerForm.account)
+    const isEmail = isValidEmail(registerForm.account)
+
+    if (!isPhone && !isEmail) {
+        message.error('请输入正确的手机号或邮箱')
+        return
+    }
+
+    try {
+        const params = {
+            username: registerForm.username,
+            password: registerForm.password,
+            phone: isPhone ? registerForm.account : '',
+            email: isEmail ? registerForm.account : ''
+        }
+
+        await register(params)
+        message.success('注册成功')
+        router.push('/login')
+    } catch (error) {
+        console.error('注册失败:', error)
+    }
 }
 
 const goToLogin = () => {

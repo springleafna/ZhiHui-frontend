@@ -805,7 +805,7 @@ const confirmAddToMatrix = async () => {
 }
 
 .sidebar {
-  width: 320px;
+  width: 330px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
