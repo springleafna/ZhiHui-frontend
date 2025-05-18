@@ -283,6 +283,7 @@ import {
   formatTime 
 } from '@/api/dailyTask'
 import { summarizeTask } from '@/api/ai'
+import { addTaskToQuadrant } from '@/api/quadrant'
 
 // 任务列表数据
 const tasks = ref([])
@@ -628,17 +629,31 @@ const handleMatrixSelect = (value) => {
 // 确认添加到四象限
 const confirmAddToMatrix = async () => {
   if (selectedTaskForMatrix.value && matrixForm.value.quadrant) {
-    // 这里可以添加实际的添加到四象限的接口调用
-    const quadrantLabels = {
-      1: '紧急且重要',
-      2: '紧急不重要',
-      3: '不紧急但重要',
-      4: '不紧急不重要'
+    try {
+      const success = await addTaskToQuadrant({
+        task: selectedTaskForMatrix.value,
+        quadrantType: matrixForm.value.quadrant,
+        taskType: 0 // 0表示每日任务
+      })
+      
+      if (success) {
+        const quadrantLabels = {
+          1: '紧急且重要',
+          2: '紧急不重要',
+          3: '不紧急但重要',
+          4: '不紧急不重要'
+        }
+        message.success(`已将任务 "${selectedTaskForMatrix.value.title}" 添加到 ${quadrantLabels[matrixForm.value.quadrant]}`)
+        matrixModalVisible.value = false
+        selectedTaskForMatrix.value = null
+        matrixForm.value.quadrant = 1
+      }
+      // 如果 success 为 false (任务已存在)，则不执行这里的成功提示和modal关闭逻辑
+
+    } catch (error) {
+      console.error('添加到四象限失败:', error)
+      message.error('添加到四象限失败')
     }
-    message.success(`已将任务 "${selectedTaskForMatrix.value.title}" 添加到 ${quadrantLabels[matrixForm.value.quadrant]}`)
-    matrixModalVisible.value = false
-    selectedTaskForMatrix.value = null
-    matrixForm.value.quadrant = 1
   }
 }
 </script>

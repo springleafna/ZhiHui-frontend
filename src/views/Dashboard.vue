@@ -104,7 +104,7 @@
               <div class="stat-label">便签数量</div>
             </div>
             <div class="stat-item">
-              <div class="stat-value">24</div>
+              <div class="stat-value">{{ quadrantTaskCount }}</div>
               <div class="stat-label">象限任务数</div>
             </div>
             <div class="stat-item">
@@ -150,22 +150,24 @@
         </div>
         <div class="card-content">
           <div class="workspace-items">
-            <div class="workspace-item">
-              <div class="workspace-icon"><i class="iconfont icon-note"></i></div>
-              <div class="workspace-info">
-                <div class="workspace-title">笔记整稿</div>
-                <div class="workspace-desc">机器学习算法概述...</div>
+            <template v-if="recentNotes.length > 0">
+              <div 
+                v-for="note in recentNotes" 
+                :key="note.noteId" 
+                class="workspace-item"
+                @click="goToNoteDetail(note.noteId)"
+              >
+                <div class="workspace-icon"><i class="iconfont icon-note"></i></div>
+                <div class="workspace-info">
+                  <div class="workspace-title">{{ note.title }}</div>
+                  <div class="workspace-desc">{{ truncateText(note.content || '') }}</div>
+                </div>
+                <div class="workspace-bookmark"><i class="iconfont icon-bookmark"></i></div>
               </div>
-              <div class="workspace-bookmark"><i class="iconfont icon-bookmark"></i></div>
-            </div>
-            
-            <div class="workspace-item">
-              <div class="workspace-icon"><i class="iconfont icon-doc"></i></div>
-              <div class="workspace-info">
-                <div class="workspace-title">学习清单</div>
-                <div class="workspace-desc">Python进阶课程规划...</div>
-              </div>
-              <div class="workspace-bookmark"><i class="iconfont icon-bookmark"></i></div>
+            </template>
+            <div v-else class="empty-state">
+              <i class="iconfont icon-empty"></i>
+              <p>您还没有添加笔记哦~</p>
             </div>
           </div>
           
@@ -175,7 +177,7 @@
               <div class="ai-title">AI写作助手</div>
               <div class="ai-desc">让AI帮助你优化文章结构和表达...</div>
             </div>
-            <button class="ai-btn">开始写作</button>
+            <button class="ai-btn" @click="goToEditor">开始写作</button>
           </div>
         </div>
       </div>
@@ -349,11 +351,13 @@
 import { ref, onMounted, nextTick } from 'vue'
 import { insertMemo, getMemoList, updateMemo, deleteMemo } from '@/api/memo'
 import { message } from 'ant-design-vue'
-import { getNoteCount } from '@/api/note'
+import { getNoteCount, getAllNotes } from '@/api/note'
 import { getDailyTaskCount } from '@/api/dailyTask'
 import { getLongTermTaskCount } from '@/api/longTermTask'
 import { getMemoCount } from '@/api/memo'
+import { getQuadrantTaskCount } from '@/api/quadrant'
 import { generateTask } from '@/api/ai'
+import { useRouter } from 'vue-router'
 
 // 快速笔记内容
 const memoContent = ref('')
@@ -371,6 +375,11 @@ const noteCount = ref(0)
 const dailyTaskCount = ref(0)
 const longTermTaskCount = ref(0)
 const memoCount = ref(0)
+const quadrantTaskCount = ref(0)
+
+const recentNotes = ref([])
+
+const router = useRouter()
 
 // 颜色数组
 const colors = [
@@ -406,6 +415,22 @@ const fetchMemoList = async () => {
     memoList.value = res || []
   } catch (error) {
     console.error('获取笔记列表失败:', error)
+  }
+}
+
+// 获取最近的两条笔记
+const fetchRecentNotes = async () => {
+  try {
+    const notes = await getAllNotes()
+    if (notes && notes.length > 0) {
+      recentNotes.value = notes
+        .sort((a, b) => new Date(b.updateTime) - new Date(a.updateTime))
+        .slice(0, 2)
+    } else {
+      recentNotes.value = []
+    }
+  } catch (error) {
+    console.error('获取最近笔记失败:', error)
   }
 }
 
@@ -482,19 +507,22 @@ const handleDeleteMemo = async (memoId) => {
 
 const fetchStats = async () => {
   try {
-    const [noteRes, dailyTaskRes, longTermTaskRes, memoRes] = await Promise.all([
+    const [noteRes, dailyTaskRes, longTermTaskRes, memoRes, quadrantTaskRes] = await Promise.all([
       getNoteCount(),
       getDailyTaskCount(),
       getLongTermTaskCount(),
-      getMemoCount()
+      getMemoCount(),
+      getQuadrantTaskCount()
     ])
     
     noteCount.value = noteRes
     dailyTaskCount.value = dailyTaskRes
     longTermTaskCount.value = longTermTaskRes
     memoCount.value = memoRes
+    quadrantTaskCount.value = quadrantTaskRes
   } catch (error) {
     console.error('获取统计数据失败:', error)
+    message.error('获取统计数据失败')
   }
 }
 
@@ -556,7 +584,18 @@ const handleSendMessage = async () => {
 onMounted(() => {
   fetchMemoList()
   fetchStats()
+  fetchRecentNotes()
 })
+
+// 跳转到笔记详情页
+const goToNoteDetail = (noteId) => {
+  router.push({ name: 'NoteDetail', params: { id: noteId } })
+}
+
+// 跳转到笔记创作页
+const goToEditor = () => {
+  router.push({ name: 'Editor' })
+}
 </script>
 
 <style scoped>
