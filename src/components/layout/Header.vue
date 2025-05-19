@@ -7,25 +7,7 @@
                 <span class="logo-text">知汇</span>
             </div>
 
-            <!-- 导航切换 -->
-            <div class="nav-toggle">
-                <button 
-                    class="toggle-btn" 
-                    :class="{ active: activeMode === 'personal' }"
-                    @click="switchMode('personal')"
-                >
-                    <UserIcon class="nav-icon" />
-                    <span>个人</span>
-                </button>
-                <button 
-                    class="toggle-btn" 
-                    :class="{ active: activeMode === 'team' }"
-                    @click="switchMode('team')"
-                >
-                    <TeamIcon class="nav-icon" />
-                    <span>团队</span>
-                </button>
-            </div>
+            
         </div>
 
         <!-- 右侧功能区 -->
@@ -40,9 +22,9 @@
         <!-- 通知、用户头像 -->
         <div class="nav-section">
             <!-- 通知 -->
-            <div class="notice">
+            <!-- <div class="notice">
                 <NoticeIcon class="notice-icon" />
-            </div>
+            </div> -->
 
             <!-- 用户头像 -->
             <div class="avatar-container">

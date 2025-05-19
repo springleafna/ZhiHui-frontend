@@ -5,17 +5,14 @@
       <a-card class="plan-card" :bordered="false">
         <!-- 顶部标题和添加按钮 -->
         <div class="header">
-          <h2>今日计划</h2>
+          <h2>今日任务</h2>
           <div class="header-actions">
-            <a-button class="history-btn" @click="showHistory">
-              历史模式
-            </a-button>
-            <a-button class="export-btn" @click="exportTasks">
+            <a-button class="export-btn" @click="exportDailyTasks">
               导出日报
             </a-button>
             <a-button type="primary" @click="showAddModal">
               <template #icon><PlusOutlined /></template>
-              新建计划
+              新建任务
             </a-button>
           </div>
         </div>
@@ -165,7 +162,7 @@
           </div>
           <div class="ai-content">
             <a-button type="primary" block class="generate-btn" @click="askAI" :loading="aiLoading">
-              总结今日计划
+              总结今日任务
             </a-button>
           </div>
         </a-card>
@@ -208,13 +205,13 @@
     <!-- 新建/编辑任务弹窗 -->
     <a-modal
       v-model:open="modalVisible"
-      :title="editingTask ? '编辑计划' : '新建计划'"
+      :title="editingTask ? '编辑任务' : '新建任务'"
       @ok="handleModalOk"
       @cancel="handleModalCancel"
     >
       <a-form :model="taskForm" :rules="rules" ref="taskFormRef">
         <a-form-item label="标题" name="title">
-          <a-input v-model:value="taskForm.title" placeholder="请输入计划标题" />
+          <a-input v-model:value="taskForm.title" placeholder="请输入任务标题" />
         </a-form-item>
         <a-form-item label="开始时间" name="startTime">
           <a-time-picker 
@@ -284,6 +281,7 @@ import {
 } from '@/api/dailyTask'
 import { summarizeTask } from '@/api/ai'
 import { addTaskToQuadrant } from '@/api/quadrant'
+import * as XLSX from 'xlsx';
 
 // 任务列表数据
 const tasks = ref([])
@@ -306,7 +304,7 @@ const taskForm = ref({
 
 // 表单校验规则
 const rules = {
-  title: [{ required: true, message: '请输入计划标题', trigger: 'blur' }],
+  title: [{ required: true, message: '请输入任务标题', trigger: 'blur' }],
   priority: [{ required: true, message: '请选择优先级', trigger: 'change' }],
   endTime: [
     {
@@ -504,10 +502,51 @@ onMounted(async () => {
   await fetchTasks(selectedDate.value)
 })
 
-// 查看历史记录
-const showHistory = () => {
-  message.info('查看历史记录')
-  // 这里可以实现查看历史记录的逻辑
+// 导出日报
+const exportDailyTasks = () => {
+  const data = exportTasks();
+  // console.log('日报：', data); // 移除或注释掉控制台输出
+
+  if (!data || !data.tasks || data.tasks.length === 0) {
+    // 假设您使用了 ant-design-vue 的 message 组件
+    message.warning('没有任务数据可导出');
+    return;
+  }
+
+  // 准备要导出的数据，只包含指定字段并使用中文表头
+  const exportedData = data.tasks.map(task => {
+    return {
+      '任务日期': task.taskDate,
+      '标题': task.title,
+      '描述': task.description,
+      '开始时间': task.startTime || '', // 处理 null/undefined
+      '结束时间': task.endTime || '',   // 处理 null/undefined
+      '完成情况': task.completed ? '是' : '否', // 转换布尔值
+      '优先级': getPriorityText(task.priority) // 使用现有函数转换优先级数字
+    };
+  });
+
+  // 将处理后的 JSON 数组转换为工作表
+  const worksheet = XLSX.utils.json_to_sheet(exportedData);
+
+  // 创建新的工作簿
+  const workbook = XLSX.utils.book_new();
+
+  // 将工作表添加到工作簿，并命名为 '日报'
+  XLSX.utils.book_append_sheet(workbook, worksheet, '日报');
+
+  // 生成 Excel 文件并触发下载
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `日报_${dayjs().format('YYYYMMDDHHmmss')}.xlsx`; // 设置下载文件名，使用年月日时分秒
+  a.click();
+
+  // 释放 URL 对象
+  URL.revokeObjectURL(url);
 }
 
 // 导出任务

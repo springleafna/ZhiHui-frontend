@@ -162,26 +162,26 @@ onMounted(async () => {
 }
 
 /* 各象限背景色 */
+/* 浅红色 */
 .urgent-important {
     background: #ffe6e6;
 }
 
-/* 浅粉色 */
+/* 浅黄色 */
 .urgent-not-important {
     background: #fff9e6;
 }
 
-/* 浅黄色 */
+/* 浅蓝色 */
 .important-not-urgent {
     background: #e6f4ff;
 }
 
-/* 浅蓝色 */
+/* 浅灰色 */
 .not-urgent-not-important {
-    background: #f5f5f5;
+    background: rgb(240, 231, 231);
 }
 
-/* 浅灰色 */
 </style>
 
 <style scoped>

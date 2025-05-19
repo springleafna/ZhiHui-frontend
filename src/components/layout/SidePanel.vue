@@ -44,10 +44,12 @@
 import { ref, inject, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import TaskIcon from '@/assets/icon-task.svg'
-import PlanIcon from '@/assets/icon-task.svg'
-import NoteIcon from '@/assets/icon-note.svg'
+import HomeIcon from '@/assets/icon-task.svg'
+import PlanIcon from '@/assets/icon-learning.svg'
+import LongTermIcon from '@/assets/icon-tiao.svg'
+import NoteIcon from '@/assets/icon-dengpao.svg'
 import KnowledgeIcon from '@/assets/icon-task.svg'
-import QuadrantIcon from '@/assets/icon-task.svg'
+import QuadrantIcon from '@/assets/icon-xiangxian.svg'
 import ProjectIcon from '@/assets/icon-task.svg'
 import TeamIcon from '@/assets/icon-task.svg'
 import CollapseIcon from '@/assets/icon-collapse.svg'
@@ -68,9 +70,9 @@ const activeMode = inject('activeMode', ref('personal'))
 
 // 个人导航项
 const personalNavItems = [
-    { id: 'task-center', label: '任务中心', icon: TaskIcon, route: '/dashboard' },
-    { id: 'daily-plan', label: '每日计划', icon: PlanIcon, route: '/daily-plan' },
-    { id: 'long-term-plan', label: '长期计划', icon: PlanIcon, route: '/long-term-plan' },
+    { id: 'task-center', label: '任务中心', icon: HomeIcon, route: '/dashboard' },
+    { id: 'daily-plan', label: '每日任务', icon: PlanIcon, route: '/daily-plan' },
+    { id: 'long-term-plan', label: '长期任务', icon: LongTermIcon, route: '/long-term-plan' },
     { id: 'task-quadrant', label: '任务四象限', icon: QuadrantIcon, route: '/priority' },
     { id: 'notes', label: '我的笔记', icon: NoteIcon, route: '/notes' },
     { id: 'knowledge', label: '知识库', icon: KnowledgeIcon, route: '/knowledge' }

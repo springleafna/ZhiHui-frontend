@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="9" height="9" viewBox="0 0 9 9">
+    <path d="M6 1L1 1L1 1L1 6L1 6L6 6L6 6L6 1L6 1ZM6 -1Q6.82844 -1 7.41422 -0.41422Q8 0.171561 8 1L8 6Q8 6.82844 7.41422 7.41422Q6.82844 8 6 8L1 8Q0.171561 8 -0.41422 7.41422Q-1 6.82844 -1 6L-1 1Q-1 0.171561 -0.414219 -0.414219Q0.171561 -1 1 -1L6 -1Z" fill-rule="nonzero" transform="matrix(1 0 0 1 1 1)" fill="rgb(25, 118, 210)"/>
+</svg>

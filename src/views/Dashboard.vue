@@ -18,62 +18,26 @@
         </div>
       </div>
 
-      <!-- 今日学习 -->
-      <div class="dashboard-card today-learning">
+      <!-- AI助手 -->
+      <div class="dashboard-card ai-helper">
         <div class="card-header">
-          <h2>今日学习</h2>
-          <div class="icon-btn"><i class="iconfont icon-chart"></i></div>
+          <h2>AI助手</h2>
+          <div class="icon-btn"><i class="iconfont icon-chat"></i></div>
         </div>
         <div class="card-content">
-          <div class="progress-chart">
-            <svg width="160" height="160" viewBox="0 0 160 160">
-              <circle cx="80" cy="80" r="70" fill="#e8f4fc" />
-              <circle
-                cx="80"
-                cy="80"
-                r="70"
-                fill="none"
-                stroke="#e8f4fc"
-                stroke-width="12"
-              />
-              <circle
-                cx="80"
-                cy="80"
-                r="70"
-                fill="none"
-                stroke="#1890ff"
-                stroke-width="12"
-                stroke-dasharray="439.6"
-                stroke-dashoffset="329.7"
-                stroke-linecap="round"
-                transform="rotate(-90 80 80)"
-              />
-            </svg>
-            <div class="progress-text">
-              <div class="progress-value">4.5</div>
-              <div class="progress-label">小时</div>
-            </div>
-          </div>
+          <div class="ai-message">需要帮助创建你的任务吗？</div>
+          <button class="start-btn" @click="openAIChat">开始对话</button>
         </div>
       </div>
 
-      <!-- 本周趋势 -->
-      <div class="dashboard-card weekly-trend">
+      <!-- 欢迎 -->
+      <div class="dashboard-card project-introduction">
         <div class="card-header">
-          <h2>本周趋势</h2>
-          <div class="icon-btn"><i class="iconfont icon-arrow-up"></i></div>
+          <h2>你好</h2>
         </div>
         <div class="card-content">
-          <div class="trend-chart">
-            <svg width="100%" height="100" viewBox="0 0 300 100" preserveAspectRatio="none">
-              <path
-                d="M0,80 Q30,70 60,65 T120,55 T180,35 T240,45 T300,20"
-                fill="none"
-                stroke="#1890ff"
-                stroke-width="2"
-              />
-            </svg>
-          </div>
+          <p>欢迎来到知汇！</p>
+          <p>这是一个帮助您记录灵感、管理任务、学习统计以及AI助手的综合性应用。</p>
         </div>
       </div>
 
@@ -183,125 +147,10 @@
       </div>
     </div>
 
-    <!-- 第三行 -->
-    <div class="dashboard-row">
-      <!-- AI助手 -->
-      <div class="dashboard-card ai-helper">
-        <div class="card-header">
-          <h2>AI助手</h2>
-          <div class="icon-btn"><i class="iconfont icon-chat"></i></div>
-        </div>
-        <div class="card-content">
-          <div class="ai-message">需要帮助创建你的任务吗？</div>
-          <button class="start-btn" @click="openAIChat">开始对话</button>
-        </div>
-      </div>
-
-      <!-- 学习统计 -->
-      <div class="dashboard-card learning-stats">
-        <div class="card-header">
-          <h2>学习统计</h2>
-          <div class="icon-btn"><i class="iconfont icon-calendar"></i></div>
-        </div>
-        <div class="card-content">
-          <div class="heatmap-container">
-            <div class="heatmap-row">
-              <div class="heatmap-cell high"></div>
-              <div class="heatmap-cell medium"></div>
-              <div class="heatmap-cell high"></div>
-              <div class="heatmap-cell high"></div>
-              <div class="heatmap-cell low"></div>
-              <div class="heatmap-cell empty"></div>
-              <div class="heatmap-cell high"></div>
-            </div>
-            <div class="heatmap-row">
-              <div class="heatmap-cell high"></div>
-              <div class="heatmap-cell high"></div>
-              <div class="heatmap-cell empty"></div>
-              <div class="heatmap-cell low"></div>
-              <div class="heatmap-cell medium"></div>
-              <div class="heatmap-cell high"></div>
-              <div class="heatmap-cell high"></div>
-            </div>
-            <div class="heatmap-row">
-              <div class="heatmap-cell empty"></div>
-              <div class="heatmap-cell low"></div>
-              <div class="heatmap-cell high"></div>
-              <div class="heatmap-cell empty"></div>
-              <div class="heatmap-cell high"></div>
-              <div class="heatmap-cell medium"></div>
-              <div class="heatmap-cell empty"></div>
-            </div>
-            <div class="heatmap-row">
-              <div class="heatmap-cell medium"></div>
-              <div class="heatmap-cell empty"></div>
-              <div class="heatmap-cell low"></div>
-              <div class="heatmap-cell high"></div>
-              <div class="heatmap-cell medium"></div>
-              <div class="heatmap-cell high"></div>
-              <div class="heatmap-cell low"></div>
-            </div>
-          </div>
-          <div class="heatmap-legend">
-            <div class="legend-label">较少</div>
-            <div class="legend-items">
-              <div class="legend-item empty"></div>
-              <div class="legend-item low"></div>
-              <div class="legend-item medium"></div>
-              <div class="legend-item high"></div>
-            </div>
-            <div class="legend-label">较多</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 成就徽章 -->
-      <div class="dashboard-card achievements">
-        <div class="card-header">
-          <h2>成就徽章</h2>
-          <div class="icon-btn"><i class="iconfont icon-trophy"></i></div>
-        </div>
-        <div class="card-content">
-          <div class="badge-container">
-            <div class="badge-row">
-              <div class="badge-item active">
-                <div class="badge-icon"><i class="iconfont icon-light"></i></div>
-              </div>
-              <div class="badge-item active">
-                <div class="badge-icon"><i class="iconfont icon-rocket"></i></div>
-              </div>
-              <div class="badge-item active">
-                <div class="badge-icon"><i class="iconfont icon-fire"></i></div>
-              </div>
-            </div>
-            <div class="badge-row">
-              <div class="badge-item empty">
-                <div class="badge-icon"><i class="iconfont icon-diamond"></i></div>
-              </div>
-              <div class="badge-item active">
-                <div class="badge-icon"><i class="iconfont icon-star"></i></div>
-              </div>
-              <div class="badge-item empty">
-                <div class="badge-icon"><i class="iconfont icon-crown"></i></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 设置 -->
-      <div class="dashboard-card settings">
-        <div class="card-header">
-          <h2>设置</h2>
-          <div class="icon-btn"><i class="iconfont icon-settings"></i></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 笔记详情弹窗 -->
+    <!-- 便签详情弹窗 -->
     <a-modal
       v-model:open="memoDialogVisible"
-      title="笔记详情"
+      title="便签详情"
       @ok="handleUpdateMemo"
       @cancel="closeMemoDialog"
       okText="保存"
@@ -310,7 +159,7 @@
       <textarea 
         v-model="editingMemo.content" 
         class="memo-edit-input"
-        placeholder="编辑笔记内容..."
+        placeholder="编辑便签内容..."
       ></textarea>
     </a-modal>
 
@@ -425,7 +274,7 @@ const fetchRecentNotes = async () => {
     if (notes && notes.length > 0) {
       recentNotes.value = notes
         .sort((a, b) => new Date(b.updateTime) - new Date(a.updateTime))
-        .slice(0, 2)
+        .slice(0, 4)
     } else {
       recentNotes.value = []
     }
@@ -723,38 +572,20 @@ const goToEditor = () => {
   background-color: #f0f2f5;
 }
 
-/* 今日学习 */
-.progress-chart {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  height: 160px;
+/* 项目介绍 */
+.project-introduction .card-header {
+  border-bottom: 1px solid #f0f0f0;
 }
 
-.progress-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
+.project-introduction .card-content {
+  padding: 15px 20px;
 }
 
-.progress-value {
-  font-size: 28px;
-  font-weight: 600;
-  color: #1890ff;
-}
-
-.progress-label {
+.project-introduction .card-content p {
+  margin: 0;
   font-size: 14px;
-  color: #666;
-}
-
-/* 本周趋势 */
-.trend-chart {
-  height: 100px;
-  width: 100%;
+  color: #333;
+  line-height: 1.6;
 }
 
 /* 学习成果 */
@@ -790,7 +621,7 @@ const goToEditor = () => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 200px;
+  height: 400px;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -944,7 +775,7 @@ const goToEditor = () => {
   border-radius: 8px;
   background-color: #1890ff;
   color: white;
-  margin-top: 10px;
+  margin-bottom: 20px;
 }
 
 .ai-icon {
