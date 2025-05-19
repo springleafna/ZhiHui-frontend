@@ -75,7 +75,7 @@ const personalNavItems = [
     { id: 'long-term-plan', label: '长期任务', icon: LongTermIcon, route: '/long-term-plan' },
     { id: 'task-quadrant', label: '任务四象限', icon: QuadrantIcon, route: '/priority' },
     { id: 'notes', label: '我的笔记', icon: NoteIcon, route: '/notes' },
-    { id: 'knowledge', label: '知识库', icon: KnowledgeIcon, route: '/knowledge' }
+    /* { id: 'knowledge', label: '知识库', icon: KnowledgeIcon, route: '/knowledge' } */
 ]
 
 // 团队导航项

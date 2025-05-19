@@ -30,15 +30,10 @@
         </div>
       </div>
 
-      <!-- 欢迎 -->
+      <!-- 时钟组件 -->
       <div class="dashboard-card project-introduction">
-        <div class="card-header">
-          <h2>你好</h2>
-        </div>
-        <div class="card-content">
-          <p>欢迎来到知汇！</p>
-          <p>这是一个帮助您记录灵感、管理任务、学习统计以及AI助手的综合性应用。</p>
-        </div>
+        <iframe src="https://www.widgets.link/#/date-number-02?nc=37352F&bbc=ffffff&br=5&bg=&_b=true">
+        </iframe>
       </div>
 
       <!-- 学习成果 -->
@@ -72,8 +67,8 @@
               <div class="stat-label">象限任务数</div>
             </div>
             <div class="stat-item">
-              <div class="stat-value">48</div>
-              <div class="stat-label">知识库数</div>
+              <div class="stat-value">{{ dailyTaskCount + longTermTaskCount }}</div>
+              <div class="stat-label">待办事项</div>
             </div>
           </div>
         </div>
@@ -586,6 +581,12 @@ const goToEditor = () => {
   font-size: 14px;
   color: #333;
   line-height: 1.6;
+}
+
+.project-introduction iframe {
+  border: none;
+  width: 100%;
+  height: 100%;
 }
 
 /* 学习成果 */
