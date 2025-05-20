@@ -41,15 +41,18 @@
                     </div>
                 </div>
                 
-                <div class="category-actions">
-                    <a-button 
-                        type="primary" 
-                        block
-                        @click="showAddDialog = true"
-                        class="action-btn">
-                        <template #icon><i class="icon-plus"></i></template>
-                        新建分类
-                    </a-button>
+                
+                <div class="action-section">
+                    <button class="action-button primary" @click="showAddDialog = true">
+                        <i class="icon-edit"></i>
+                        <span>新建分类</span>
+                    </button>
+                </div>
+                <div class="action-section">
+                    <button class="action-button primary" @click="goToEditor">
+                        <i class="icon-edit"></i>
+                        <span>开始创作</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -112,46 +115,7 @@
         </div>
 
         <!-- 右侧快速操作区 -->
-    <div class="quick-actions">
-        <div class="action-section">
-            <button class="action-button primary" @click="goToEditor">
-                <i class="icon-edit"></i>
-                <span>开始创作</span>
-            </button>
-        </div>
-
-        <div class="action-section">
-            <h3 class="section-title">快速记录</h3>
-            <div class="quick-grid">
-                <button class="quick-button">
-                    <i class="icon-mic"></i>
-                    <span>语音速记</span>
-                </button>
-                <button class="quick-button">
-                    <i class="icon-camera"></i>
-                    <span>图片描述</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="action-section">
-            <h3 class="section-title">导出格式</h3>
-            <div class="export-grid">
-                <button class="export-button">
-                    <i class="icon-file-pdf"></i>
-                    <span>PDF</span>
-                </button>
-                <button class="export-button">
-                    <i class="icon-image"></i>
-                    <span>图片</span>
-                </button>
-                <button class="export-button">
-                    <i class="icon-share"></i>
-                    <span>分享</span>
-                </button>
-            </div>
-        </div>
-    </div>
+    
     </div>
 
     <!-- 新建分类弹窗 -->
@@ -733,6 +697,7 @@ const handleNoteClick = (note) => {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    margin-top: 20px;
 }
 
 /* 快速记录网格 */
@@ -895,5 +860,26 @@ const handleNoteClick = (note) => {
     height: 1px;
     background: #f0f0f0;
     margin: 4px 0;
+}
+
+.action-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 15px;
+}
+
+.category-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
 }
 </style>

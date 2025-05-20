@@ -19,7 +19,7 @@
             <section class="hero-section">
                 <h1 class="hero-title">构建你的个人知识宇宙</h1>
                 <p class="hero-subtitle">
-                    知汇将AI智能、知识管理与学习社区完美融合，为每位学习者打造专属的成长空间
+                    知汇将AI智能、任务管理完美融合，为每位学习者打造专属的成长空间
                 </p>
             </section>
 
@@ -28,23 +28,23 @@
                 <div class="card" :style="{ animationDelay: '0.1s' }">
                     <div class="card-header">
                         <div class="card-icon">📊</div>
-                        <h3 class="card-title">学习仪表盘</h3>
+                        <h3 class="card-title">任务仪表盘</h3>
                     </div>
-                    <p class="card-content">实时追踪学习进度，可视化分析知识掌握情况，智能推荐学习路径</p>
+                    <p class="card-content">实时记录任务数，多任务类别，任务专注度提高100%</p>
                 </div>
                 <div class="card" :style="{ animationDelay: '0.2s' }">
                     <div class="card-header">
                         <div class="card-icon">✍️</div>
                         <h3 class="card-title">智能笔记系统</h3>
                     </div>
-                    <p class="card-content">三栏式Markdown编辑器，AI辅助写作，知识卡片自动关联</p>
+                    <p class="card-content">智能化Markdown编辑器，AI辅助写作，智能扩写、续写、翻译</p>
                 </div>
                 <div class="card" :style="{ animationDelay: '0.3s' }">
                     <div class="card-header">
                         <div class="card-icon">🤖</div>
                         <h3 class="card-title">AI交互中心</h3>
                     </div>
-                    <p class="card-content">自然语言提问，智能解答，学习内容一键润色，知识图谱自动构建</p>
+                    <p class="card-content">自然语言提问，智能解答，AI任务管理，AI任务总结</p>
                 </div>
             </div>
 
@@ -54,18 +54,18 @@
                 <div class="feature-grid">
                     <div class="feature-card">
                         <div class="feature-icon">⏱️</div>
-                        <h3 class="feature-title">专注学习管理</h3>
-                        <p class="feature-desc">四象限待办矩阵，番茄钟计时，学习时长热力图分析，培养深度专注习惯</p>
+                        <h3 class="feature-title">智能任务管理</h3>
+                        <p class="feature-desc">每日任务+长期任务+四象限待办矩阵，多类型任务分离，培养深度专注习惯</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">🌐</div>
-                        <h3 class="feature-title">知识社交网络</h3>
-                        <p class="feature-desc">精选笔记分享，互动式知识卡片，学习小组协作，构建你的学术社交圈</p>
+                        <h3 class="feature-title">AI智能辅助</h3>
+                        <p class="feature-desc">AI对话交流，AI任务管理，AI笔记创作，助力效率提升</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">📈</div>
-                        <h3 class="feature-title">成长可视化</h3>
-                        <p class="feature-desc">学习轨迹日历，知识资产图谱，成就徽章系统，让进步看得见</p>
+                        <h3 class="feature-title">学习全记录</h3>
+                        <p class="feature-desc">任务统计详细，任务总结完善，让进步看得见</p>
                     </div>
                 </div>
             </section>
@@ -79,20 +79,20 @@
                     </div>
                     <div class="data-content">
                         <div class="data-item">
-                            <div class="data-value">1,248</div>
-                            <div class="data-label">累计学习分钟</div>
+                            <div class="data-value">32</div>
+                            <div class="data-label">笔记数量</div>
                         </div>
                         <div class="data-item">
                             <div class="data-value">87</div>
-                            <div class="data-label">知识卡片</div>
+                            <div class="data-label">便签数量</div>
                         </div>
                         <div class="data-item">
                             <div class="data-value">23</div>
-                            <div class="data-label">思维导图</div>
+                            <div class="data-label">待办事项</div>
                         </div>
                         <div class="data-item">
                             <div class="data-value">5</div>
-                            <div class="data-label">成就徽章</div>
+                            <div class="data-label">今日完成</div>
                         </div>
                     </div>
                 </div>
@@ -102,7 +102,7 @@
 
     <!-- 页脚 -->
     <header class="header">
-        <p>© 2025 知汇 - 个人学习管理平台</p>
+        <p>© 2025 知汇 - 智能任务管理+智能笔记创作平台</p>
     </header>
 </div>
 </template>
