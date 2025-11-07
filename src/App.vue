@@ -3,6 +3,14 @@ import Header from './components/layout/Header.vue'
 import SidePanel from './components/layout/SidePanel.vue'
 import { ref, provide, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import zhCN from 'ant-design-vue/es/locale/zh_CN'
+import dayjs from 'dayjs'
+import 'dayjs/locale/zh-cn'
+
+// 配置 dayjs 为中文
+dayjs.locale('zh-cn')
+
+//const zhCN = ref(zhCN)
 
 const route = useRoute()
 
@@ -48,6 +56,7 @@ onMounted(() => {
 </script>
 
 <template>
+<a-config-provider :locale="zhCN">
   <Header v-if="!route.meta.hideLayout" @mode-change="handleModeChange" />
   <div class="app-container" :class="{ 'no-layout': route.meta.hideLayout }">
     <SidePanel v-if="!route.meta.hideLayout" @toggle-collapse="handleSidePanelToggle" />
@@ -58,6 +67,7 @@ onMounted(() => {
       <router-view></router-view>
     </main>
   </div>
+</a-config-provider>
 </template>
 
 <style>
